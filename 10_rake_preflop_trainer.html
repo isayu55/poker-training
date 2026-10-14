@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10% Rake Preflop Trainer Pro</title>
+    <style>
+        /* Base Styles replacing Tailwind */
+        body { margin: 0; padding: 1rem; font-family: sans-serif; background-color: #0f172a; color: #f1f5f9; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+        * { box-sizing: border-box; }
+        .hidden { display: none !important; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .font-bold { font-weight: 700; }
+        .font-extrabold { font-weight: 800; }
+        .font-black { font-weight: 900; }
+        .text-sm { font-size: 0.875rem; }
+        .text-xs { font-size: 0.75rem; }
+        .text-xl { font-size: 1.25rem; }
+        .text-2xl { font-size: 1.5rem; }
+        .text-3xl { font-size: 1.875rem; }
+        .mt-1 { margin-top: 0.25rem; } .mt-2 { margin-top: 0.5rem; } .mt-4 { margin-top: 1rem; } .mt-6 { margin-top: 1.5rem; }
+        .mb-1 { margin-bottom: 0.25rem; } .mb-2 { margin-bottom: 0.5rem; } .mb-3 { margin-bottom: 0.75rem; } .mb-4 { margin-bottom: 1rem; } .mb-6 { margin-bottom: 1.5rem; }
+        .pb-3 { padding-bottom: 0.75rem; } .pt-4 { padding-top: 1rem; }
+        .p-4 { padding: 1rem; } .p-5 { padding: 1.25rem; } .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; } .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; } .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; } .py-4 { padding-top: 1rem; padding-bottom: 1rem; } .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+        .w-full { width: 100%; } .max-w-lg { max-width: 32rem; } .max-w-md { max-width: 28rem; }
+        .flex { display: flex; } .flex-col { flex-direction: column; } .justify-between { justify-content: space-between; } .justify-center { justify-content: center; } .items-center { align-items: center; }
+        .space-x-6 > * + * { margin-left: 1.5rem; }
+        .grid { display: grid; } .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .gap-2 { gap: 0.5rem; } .gap-4 { gap: 1rem; }
+        .rounded { border-radius: 0.25rem; } .rounded-lg { border-radius: 0.5rem; } .rounded-xl { border-radius: 0.75rem; } .rounded-2xl { border-radius: 1rem; } .rounded-full { border-radius: 9999px; }
+        .shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); } .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); } .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); } .shadow-inner { box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06); }
+        .border { border-width: 1px; border-style: solid; } .border-t { border-top-width: 1px; border-top-style: solid; } .border-b { border-bottom-width: 1px; border-bottom-style: solid; }
+        .bg-slate-900 { background-color: #0f172a; } .bg-slate-800 { background-color: #1e293b; } .bg-slate-700 { background-color: #334155; } .bg-indigo-600 { background-color: #4f46e5; } .bg-blue-600 { background-color: #2563eb; } .bg-emerald-600 { background-color: #059669; }
+        .text-white { color: #ffffff; } .text-slate-100 { color: #f1f5f9; } .text-slate-300 { color: #cbd5e1; } .text-slate-400 { color: #94a3b8; } .text-emerald-400 { color: #34d399; } .text-emerald-500 { color: #10b981; } .text-blue-400 { color: #60a5fa; } .text-red-400 { color: #f87171; }
+        .border-slate-700 { border-color: #334155; } .border-slate-600 { border-color: #475569; } .border-emerald-500 { border-color: #10b981; } .border-indigo-400 { border-color: #818cf8; } .border-red-500 { border-color: #ef4444; } .border-red-700 { border-color: #b91c1c; }
+        .opacity-90 { opacity: 0.9; }
+        .tracking-tight { letter-spacing: -0.025em; } .tracking-widest { letter-spacing: 0.1em; } .uppercase { text-transform: uppercase; }
+        .overflow-hidden { overflow: hidden; }
+        button { cursor: pointer; border: none; outline: none; } button:hover { opacity: 0.8; }
+        select { -webkit-appearance: none; -moz-appearance: none; appearance: none; }
+        
+        .gradient-text {
+            background: linear-gradient(to right, #60a5fa, #34d399);
+            -webkit-background-clip: text; color: transparent; background-clip: text;
+        }
+
+        /* Modals */
+        .fixed { position: fixed; } .inset-0 { top: 0; right: 0; bottom: 0; left: 0; } .z-50 { z-index: 50; }
+        .bg-black-80 { background-color: rgba(0, 0, 0, 0.8); }
+        .absolute { position: absolute; } .top-4 { top: 1rem; } .right-4 { right: 1rem; }
+
+        /* Custom Colors & Components */
+        .playing-card { width: 90px; height: 130px; background-color: white; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); display: flex; flex-direction: column; justify-content: space-between; padding: 0.5rem; font-weight: 800; font-size: 1.5rem; user-select: none; position: relative; color: #111;}
+        .suit-red { color: #ef4444; } .suit-black { color: #1f2937; }
+        .card-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; opacity: 0.2; }
+        .card-bottom { transform: rotate(180deg); display: flex; flex-direction: column; align-items: flex-start; }
+        .card-top { display: flex; flex-direction: column; align-items: flex-start; }
+        .suit-icon { font-size: 1.2rem; line-height: 1; }
+        
+        /* Custom Colors & Components 内の該当行を修正 */
+        .color-raise { background-color: #dc2626; }
+        .color-call { background-color: #a8e6cf; }
+        .color-fold { background-color: #3b82f6; }
+        .text-raise { color: #dc2626; } .text-call { color: #a8e6cf; }
+
+        .range-grid { display: grid; grid-template-columns: repeat(13, 1fr); gap: 1px; background-color: #1f2937; border: 1px solid #374151; padding: 2px; border-radius: 0.5rem; }
+        .grid-cell { aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: bold; color: #111; cursor: pointer; position: relative; }
+        .grid-cell:hover { opacity: 0.8; }
+        .tooltip { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #111; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 10; }
+        .grid-cell:hover .tooltip { opacity: 1; }
+        /* タブUIとスマホ向けスタイル */
+        .tab-container { display: flex; border-bottom: 1px solid #334155; background-color: rgba(30, 41, 59, 0.8); }
+        .tab-btn { flex: 1; padding: 0.75rem; text-align: center; color: #94a3b8; font-weight: bold; font-size: 0.875rem; background: transparent; transition: 0.2s; border-bottom: 2px solid transparent; }
+        .tab-btn.active { color: #34d399; border-bottom-color: #34d399; background: rgba(52, 211, 153, 0.1); }
+        .section { display: none; }
+        .section.active { display: block; }
+
+        .mistake-table { width: 100%; text-align: left; border-collapse: collapse; font-size: 0.875rem; }
+        .mistake-table th, .mistake-table td { padding: 0.75rem 0.5rem; border-bottom: 1px solid #475569; }
+        .mistake-table th { color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; }
+
+        @media (max-width: 480px) {
+            body { padding: 0.5rem; }
+            .playing-card { width: 75px; height: 110px; font-size: 1.2rem; }
+            .card-center { font-size: 2.5rem; }
+            .p-5 { padding: 1rem; }
+            .text-xl { font-size: 1.1rem; }
+            .text-2xl { font-size: 1.25rem; }
+            #ui-controls button { padding-top: 0.75rem; padding-bottom: 0.75rem; font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg border border-slate-700 flex flex-col overflow-hidden">
+        
+        <!-- Header & Nav -->
+        <div class="p-5 border-b border-slate-700 bg-slate-800 flex justify-between items-center" style="background-color: rgba(30, 41, 59, 0.5);">
+            <div>
+                <h1 class="text-2xl font-extrabold tracking-tight gradient-text">Trainer Pro</h1>
+                <p class="text-emerald-500 text-xs font-semibold mt-1">10% Rake Optimized</p>
+            </div>
+            <button onclick="toggleDataModal()" class="text-slate-400 text-sm bg-slate-700 px-3 py-1 rounded">
+                ⚙️ Data Sync
+            </button>
+        </div>
+
+        <div class="tab-container">
+            <button class="tab-btn active" onclick="switchTab('quiz', this)">🎲 Quiz</button>
+            <button class="tab-btn" onclick="switchTab('chart', this)">📊 Range</button>
+            <button class="tab-btn" onclick="switchTab('review', this)">🧠 Review</button>
+        </div>
+
+        <!-- ▼ セクション1: クイズ画面 ▼ -->
+        <div id="quiz-section" class="section active p-5 pt-2">
+            <div class="bg-slate-900 rounded-xl p-4 mb-4 shadow-inner border border-slate-700" style="border-color: rgba(51, 65, 85, 0.5);">
+                <!-- 自分のポジション表示 -->
+                <div class="text-center mb-4 border-b border-slate-700 pb-3">
+                    <span class="text-xs text-slate-400 uppercase tracking-widest font-bold">Your Position</span>
+                    <div id="current-pos-label" class="text-4xl font-black text-white mt-1 drop-shadow-md">BTN</div>
+                </div>
+
+                <!-- シナリオ・ポジション選択 -->
+                <div class="mb-3 flex justify-between items-center">
+                    <span class="text-xs text-slate-400 uppercase tracking-widest font-bold">Scenario</span>
+                    <select id="scenario-select" class="bg-slate-800 text-sm font-bold text-emerald-400 tracking-wide border border-emerald-500 rounded outline-none p-1" style="border-color: rgba(16, 185, 129, 0.5);">
+                        <option value="random">🎲 Random All</option>
+                        <option value="open">Open (RFI)</option>
+                        <option value="3bet">3-Bet (vs 5BB Open)</option>
+                        <option value="3bet_2_5">Defend (vs 2.5BB Open)</option>
+                        <option value="mistakes">🧠 Review Mistakes</option>
+                    </select>
+                </div>
+                <div class="flex justify-between items-center">
+                    <div>
+                        <select id="position-select" class="bg-slate-800 text-sm font-bold text-white tracking-wide border border-slate-600 rounded outline-none p-1 max-w-[140px]"></select>
+                    </div>
+                    <div class="text-right">
+                        <span id="ui-action-to-you" class="text-sm font-bold text-blue-400">Folded</span>
+                    </div>
+                </div>
+<!-- 
+                <div id="ui-previous-mistake" class="hidden mt-2 p-2 bg-slate-800 rounded border border-red-500 text-center">
+                    <span class="text-xs text-slate-400 font-bold">前回間違えたアクション: </span>
+                    <span id="ui-prev-action" class="text-sm font-black text-red-400"></span>
+                </div> -->
+            </div>
+
+            <!-- Cards Display -->
+            <div class="flex justify-center space-x-6 mb-6" style="min-height: 130px;" id="ui-cards-container"></div>
+
+            <!-- Feedback Area -->
+            <div id="ui-feedback" class="hidden rounded-xl p-5 mb-4 text-center shadow-lg border border-slate-700">
+                <h2 id="feedback-title" class="text-xl font-bold mb-2"></h2>
+                <div class="w-full bg-slate-700 rounded-full flex overflow-hidden border border-slate-600 mb-2" style="height: 1.5rem;">
+                    <div id="bar-raise" class="color-raise flex items-center justify-center text-xs font-bold text-slate-900" style="width: 0%; transition: width 0.5s;"></div>
+                    <div id="bar-call" class="color-call flex items-center justify-center text-xs font-bold text-slate-900" style="width: 0%; transition: width 0.5s;"></div>
+                    <div id="bar-fold" class="color-fold flex items-center justify-center text-xs font-bold text-white" style="width: 0%; transition: width 0.5s;"></div>
+                </div>
+                <p id="feedback-message" class="text-sm opacity-90 mb-4"></p>
+                <!-- チャートタブへ飛ぶボタンに変更 -->
+                <button onclick="openChartForCurrentPos()" class="w-full bg-slate-800 border border-slate-600 text-slate-300 py-2 rounded-lg text-sm mb-2">
+                    📊 View Range Chart for this Position
+                </button>
+            </div>
+
+            <!-- Action Controls -->
+            <div id="ui-controls" class="grid grid-cols-3 gap-2 mb-2">
+                <button onclick="handleAction('fold')" class="color-fold text-white py-4 rounded-xl font-bold text-lg shadow-md">Fold</button>
+                <button id="btn-call" onclick="handleAction('call')" class="color-call text-slate-900 py-4 rounded-xl font-bold text-lg shadow-md">Call</button>
+                <button id="btn-raise" onclick="handleAction('raise')" class="color-raise text-slate-900 py-4 rounded-xl font-bold text-lg shadow-md">Raise</button>
+            </div>
+
+            <button id="btn-next" onclick="nextHand()" class="hidden w-full bg-slate-700 text-white py-4 rounded-xl font-bold text-lg shadow-md mt-2">
+                Next Hand
+            </button>
+
+            <!-- Stats -->
+            <div class="mt-6 text-center py-3 rounded-lg border flex justify-between px-6" style="background-color: rgba(15, 23, 42, 0.5); border-color: rgba(51, 65, 85, 0.5);">
+                <div>
+                    <span class="text-xs text-slate-400 uppercase tracking-widest font-bold block">Correct</span>
+                    <div class="text-xl font-black text-emerald-400 mt-1" id="ui-score-correct">0</div>
+                </div>
+                <div>
+                    <span class="text-xs text-slate-400 uppercase tracking-widest font-bold block">Total</span>
+                    <div class="text-xl font-black text-white mt-1" id="ui-score-total">0</div>
+                </div>
+                <div>
+                    <span class="text-xs text-slate-400 uppercase tracking-widest font-bold block">Accuracy</span>
+                    <div class="text-xl font-black text-blue-400 mt-1"><span id="ui-score-percent">0</span>%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ▼ セクション2: チャート画面 ▼ -->
+        <div id="chart-section" class="section p-5 pt-2">
+            <h2 class="text-xl font-bold mb-4 text-emerald-400">Hand Range Chart</h2>
+
+            <div class="bg-slate-900 rounded-xl p-4 mb-4 shadow-inner border border-slate-700" style="border-color: rgba(51, 65, 85, 0.5);">
+                <div class="mb-3 flex justify-between items-center">
+                    <span class="text-xs text-slate-400 uppercase tracking-widest font-bold">Scenario</span>
+                    <select id="chart-scenario-select" class="bg-slate-800 text-sm font-bold text-emerald-400 tracking-wide border border-emerald-500 rounded outline-none p-1">
+                        <option value="open">Open (RFI)</option>
+                        <option value="3bet">3-Bet (vs 5BB Open)</option>
+                        <option value="3bet_2_5">Defend (vs 2.5BB Open)</option>
+                    </select>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-xs text-slate-400 uppercase tracking-widest font-bold block mb-1">Position</span>
+                    <select id="chart-position-select" class="bg-slate-800 text-sm font-bold text-white tracking-wide border border-slate-600 rounded outline-none p-1 max-w-[140px]"></select>
+                </div>
+            </div>
+
+            <div id="range-grid" class="range-grid mb-4"></div>
+        </div>
+
+        <!-- ▼ セクション3: レビュー画面 ▼ -->
+        <div id="review-section" class="section p-5 pt-2">
+            <h2 class="text-xl font-bold mb-4 text-emerald-400">Mistakes List</h2>
+            <button onclick="startReviewQuiz()" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-lg mb-4 shadow-md">
+                🎯 間違えた問題だけを復習する
+            </button>
+            <div class="overflow-x-auto bg-slate-900 rounded-lg border border-slate-700 p-2">
+                <table class="mistake-table">
+                    <thead><tr><th>Scenario</th><th>Pos</th><th>Hand</th><th>Mistake</th></tr></thead>
+                    <tbody id="mistake-list-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+    <!-- Data Management Modal -->
+    <div id="data-modal" class="fixed inset-0 flex items-center justify-center hidden z-50 p-4 bg-black-80">
+        <div class="bg-slate-800 rounded-xl border border-slate-600 p-6 w-full max-w-md shadow-2xl relative">
+            <button onclick="toggleDataModal()" class="absolute top-4 right-4 text-slate-400 text-xl" style="background:none;">✖</button>
+            <h2 class="text-xl font-bold mb-4 text-emerald-400">Spreadsheet Sync</h2>
+            <p class="text-xs text-slate-400 mb-4">スプレッドシートへの保存・復元ができます。間違えた問題数: <span id="mistake-count-display" class="font-bold text-white">0</span></p>
+            
+            <button onclick="copyMistakesTSV()" class="w-full bg-blue-600 text-white font-bold py-2 rounded mb-4 text-sm">
+                📋 スプシ用にコピー (エクスポート)
+            </button>
+            
+            <div class="mb-2">
+                <label class="text-xs font-bold text-slate-400">スプシから復元 (インポート):</label>
+                <textarea id="import-tsv" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-xs text-slate-300 mt-1" style="height: 6rem; resize: none;" placeholder="スプシのセルをコピーしてここに貼り付け"></textarea>
+            </div>
+            <button onclick="importMistakesTSV()" class="w-full bg-emerald-600 text-white font-bold py-2 rounded mb-2 text-sm">
+                📥 貼り付けたデータを復元
+            </button>
+            <button onclick="clearMistakes()" class="w-full border font-bold py-2 rounded text-sm mt-4 text-red-400" style="background-color: rgba(127, 29, 29, 0.5); border-color: #b91c1c;">
+                🗑️ 間違えた問題リストをリセット
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. Data Sources (Minified JSON)
+        // ==========================================
+        const rangeDataOpen = { "UTG": {"AA": {"raise": 100,"fold": 0},"AKs": {"raise": 100,"fold": 0},"AQs": {"raise": 100,"fold": 0},"AJs": {"raise": 100,"fold": 0},"ATs": {"raise": 100,"fold": 0},"A9s": {"raise": 100,"fold": 0},"A8s": {"raise": 100,"fold": 0},"A7s": {"raise": 100,"fold": 0},"A6s": {"raise": 100,"fold": 0},"A5s": {"raise": 100,"fold": 0},"A4s": {"raise": 50,"fold": 50},"AKo": {"raise": 100,"fold": 0},"KK": {"raise": 100,"fold": 0},"KQs": {"raise": 100,"fold": 0},"KJs": {"raise": 100,"fold": 0},"KTs": {"raise": 100,"fold": 0},"AQo": {"raise": 100,"fold": 0},"KQo": {"raise": 40,"fold": 60},"QQ": {"raise": 100,"fold": 0},"QJs": {"raise": 100,"fold": 0},"QTs": {"raise": 100,"fold": 0},"AJo": {"raise": 60,"fold": 40},"JJ": {"raise": 100,"fold": 0},"JTs": {"raise": 100,"fold": 0},"ATo": {"raise": 30,"fold": 70},"TT": {"raise": 100,"fold": 0},"T9s": {"raise": 40,"fold": 60},"99": {"raise": 100,"fold": 0},"88": {"raise": 100,"fold": 0},"77": {"raise": 100,"fold": 0},"66": {"raise": 50,"fold": 50},"55": {"raise": 20,"fold": 80}}, "HJ": {"AA": {"raise": 100,"fold": 0},"AKs": {"raise": 100,"fold": 0},"AQs": {"raise": 100,"fold": 0},"AJs": {"raise": 100,"fold": 0},"ATs": {"raise": 100,"fold": 0},"A9s": {"raise": 100,"fold": 0},"A8s": {"raise": 100,"fold": 0},"A7s": {"raise": 100,"fold": 0},"A6s": {"raise": 100,"fold": 0},"A5s": {"raise": 100,"fold": 0},"A4s": {"raise": 100,"fold": 0},"A3s": {"raise": 50,"fold": 50},"AKo": {"raise": 100,"fold": 0},"KK": {"raise": 100,"fold": 0},"KQs": {"raise": 100,"fold": 0},"KJs": {"raise": 100,"fold": 0},"KTs": {"raise": 100,"fold": 0},"K9s": {"raise": 60,"fold": 40},"AQo": {"raise": 100,"fold": 0},"KQo": {"raise": 100,"fold": 0},"QQ": {"raise": 100,"fold": 0},"QJs": {"raise": 100,"fold": 0},"QTs": {"raise": 100,"fold": 0},"Q9s": {"raise": 40,"fold": 60},"AJo": {"raise": 100,"fold": 0},"KJo": {"raise": 40,"fold": 60},"JJ": {"raise": 100,"fold": 0},"JTs": {"raise": 100,"fold": 0},"J9s": {"raise": 30,"fold": 70},"ATo": {"raise": 50,"fold": 50},"TT": {"raise": 100,"fold": 0},"T9s": {"raise": 80,"fold": 20},"99": {"raise": 100,"fold": 0},"98s": {"raise": 60,"fold": 40},"88": {"raise": 100,"fold": 0},"87s": {"raise": 30,"fold": 70},"77": {"raise": 100,"fold": 0},"66": {"raise": 100,"fold": 0},"55": {"raise": 60,"fold": 40},"44": {"raise": 30,"fold": 70}}, "CO": {"AA": {"raise": 100,"fold": 0},"AKs": {"raise": 100,"fold": 0},"AQs": {"raise": 100,"fold": 0},"AJs": {"raise": 100,"fold": 0},"ATs": {"raise": 100,"fold": 0},"A9s": {"raise": 100,"fold": 0},"A8s": {"raise": 100,"fold": 0},"A7s": {"raise": 100,"fold": 0},"A6s": {"raise": 100,"fold": 0},"A5s": {"raise": 100,"fold": 0},"A4s": {"raise": 100,"fold": 0},"A3s": {"raise": 100,"fold": 0},"A2s": {"raise": 60,"fold": 40},"AKo": {"raise": 100,"fold": 0},"KK": {"raise": 100,"fold": 0},"KQs": {"raise": 100,"fold": 0},"KJs": {"raise": 100,"fold": 0},"KTs": {"raise": 100,"fold": 0},"K9s": {"raise": 100,"fold": 0},"K8s": {"raise": 50,"fold": 50},"AQo": {"raise": 100,"fold": 0},"KQo": {"raise": 100,"fold": 0},"QQ": {"raise": 100,"fold": 0},"QJs": {"raise": 100,"fold": 0},"QTs": {"raise": 100,"fold": 0},"Q9s": {"raise": 100,"fold": 0},"Q8s": {"raise": 30,"fold": 70},"AJo": {"raise": 100,"fold": 0},"KJo": {"raise": 100,"fold": 0},"QJo": {"raise": 50,"fold": 50},"JJ": {"raise": 100,"fold": 0},"JTs": {"raise": 100,"fold": 0},"J9s": {"raise": 100,"fold": 0},"J8s": {"raise": 20,"fold": 80},"ATo": {"raise": 100,"fold": 0},"KTo": {"raise": 60,"fold": 40},"QTo": {"raise": 10,"fold": 90},"TT": {"raise": 100,"fold": 0},"T9s": {"raise": 100,"fold": 0},"T8s": {"raise": 40,"fold": 60},"A9o": {"raise": 50,"fold": 50},"99": {"raise": 100,"fold": 0},"98s": {"raise": 100,"fold": 0},"A8o": {"raise": 10,"fold": 90},"88": {"raise": 100,"fold": 0},"87s": {"raise": 100,"fold": 0},"77": {"raise": 100,"fold": 0},"76s": {"raise": 60,"fold": 40},"66": {"raise": 100,"fold": 0},"65s": {"raise": 40,"fold": 60},"55": {"raise": 100,"fold": 0},"54s": {"raise": 20,"fold": 80},"44": {"raise": 70,"fold": 30},"33": {"raise": 40,"fold": 60},"22": {"raise": 10,"fold": 90}}, "BTN": {"AA": {"raise": 100,"fold": 0},"AKs": {"raise": 100,"fold": 0},"AQs": {"raise": 100,"fold": 0},"AJs": {"raise": 100,"fold": 0},"ATs": {"raise": 100,"fold": 0},"A9s": {"raise": 100,"fold": 0},"A8s": {"raise": 100,"fold": 0},"A7s": {"raise": 100,"fold": 0},"A6s": {"raise": 100,"fold": 0},"A5s": {"raise": 100,"fold": 0},"A4s": {"raise": 100,"fold": 0},"A3s": {"raise": 100,"fold": 0},"A2s": {"raise": 100,"fold": 0},"AKo": {"raise": 100,"fold": 0},"KK": {"raise": 100,"fold": 0},"KQs": {"raise": 100,"fold": 0},"KJs": {"raise": 100,"fold": 0},"KTs": {"raise": 100,"fold": 0},"K9s": {"raise": 100,"fold": 0},"K8s": {"raise": 100,"fold": 0},"K7s": {"raise": 100,"fold": 0},"K6s": {"raise": 60,"fold": 40},"K5s": {"raise": 40,"fold": 60},"K4s": {"raise": 20,"fold": 80},"AQo": {"raise": 100,"fold": 0},"KQo": {"raise": 100,"fold": 0},"QQ": {"raise": 100,"fold": 0},"QJs": {"raise": 100,"fold": 0},"QTs": {"raise": 100,"fold": 0},"Q9s": {"raise": 100,"fold": 0},"Q8s": {"raise": 100,"fold": 0},"Q7s": {"raise": 70,"fold": 30},"Q6s": {"raise": 30,"fold": 70},"AJo": {"raise": 100,"fold": 0},"KJo": {"raise": 100,"fold": 0},"QJo": {"raise": 100,"fold": 0},"JJ": {"raise": 100,"fold": 0},"JTs": {"raise": 100,"fold": 0},"J9s": {"raise": 100,"fold": 0},"J8s": {"raise": 100,"fold": 0},"J7s": {"raise": 60,"fold": 40},"J6s": {"raise": 20,"fold": 80},"ATo": {"raise": 100,"fold": 0},"KTo": {"raise": 100,"fold": 0},"QTo": {"raise": 100,"fold": 0},"JTo": {"raise": 100,"fold": 0},"TT": {"raise": 100,"fold": 0},"T9s": {"raise": 100,"fold": 0},"T8s": {"raise": 100,"fold": 0},"T7s": {"raise": 70,"fold": 30},"A9o": {"raise": 100,"fold": 0},"K9o": {"raise": 70,"fold": 30},"Q9o": {"raise": 60,"fold": 40},"J9o": {"raise": 50,"fold": 50},"T9o": {"raise": 40,"fold": 60},"99": {"raise": 100,"fold": 0},"98s": {"raise": 100,"fold": 0},"97s": {"raise": 50,"fold": 50},"A8o": {"raise": 100,"fold": 0},"K8o": {"raise": 30,"fold": 70},"98o": {"raise": 20,"fold": 80},"88": {"raise": 100,"fold": 0},"87s": {"raise": 100,"fold": 0},"86s": {"raise": 40,"fold": 60},"A7o": {"raise": 80,"fold": 20},"77": {"raise": 100,"fold": 0},"76s": {"raise": 100,"fold": 0},"75s": {"raise": 30,"fold": 70},"A6o": {"raise": 60,"fold": 40},"66": {"raise": 100,"fold": 0},"65s": {"raise": 100,"fold": 0},"64s": {"raise": 20,"fold": 80},"A5o": {"raise": 50,"fold": 50},"55": {"raise": 100,"fold": 0},"54s": {"raise": 50,"fold": 50},"A4o": {"raise": 40,"fold": 60},"44": {"raise": 100,"fold": 0},"A3o": {"raise": 30,"fold": 70},"33": {"raise": 100,"fold": 0},"A2o": {"raise": 20,"fold": 80},"22": {"raise": 60,"fold": 40}} };
+        const rangeData3Bet = { "HJ_vs_UTG": { "AA": {"raise": 100,"fold": 0}, "AKs": {"raise": 100,"fold": 0}, "AQs": {"raise": 100,"fold": 0}, "AJs": {"raise": 40,"fold": 60}, "ATs": {"raise": 20,"fold": 80}, "A5s": {"raise": 40,"fold": 60}, "A4s": {"raise": 10,"fold": 90}, "AKo": {"raise": 100,"fold": 0}, "KK": {"raise": 100,"fold": 0}, "KQs": {"raise": 20,"fold": 80}, "KJs": {"raise": 10,"fold": 90}, "KTs": {"raise": 10,"fold": 90}, "AQo": {"raise": 60,"fold": 40}, "QQ": {"raise": 100,"fold": 0}, "QJs": {"raise": 10,"fold": 90}, "QTs": {"raise": 10,"fold": 90}, "JJ": {"raise": 40,"fold": 60}, "JTs": {"raise": 10,"fold": 90}, "TT": {"raise": 20,"fold": 80}, "T9s": {"raise": 10,"fold": 90}, "99": {"raise": 20,"fold": 80}, "88": {"raise": 20,"fold": 80}, "77": {"raise": 10,"fold": 90}, "66": {"raise": 10,"fold": 90} }, "BTN_vs_UTG": { "AA": {"raise": 100,"fold": 0}, "AKs": {"raise": 100,"fold": 0}, "AQs": {"raise": 100,"fold": 0}, "AJs": {"raise": 100,"fold": 0}, "ATs": {"raise": 40,"fold": 60}, "A9s": {"raise": 10,"fold": 90}, "A5s": {"raise": 30,"fold": 70}, "A4s": {"raise": 30,"fold": 70}, "AKo": {"raise": 100,"fold": 0}, "KK": {"raise": 100,"fold": 0}, "KQs": {"raise": 30,"fold": 70}, "KJs": {"raise": 10,"fold": 90}, "KTs": {"raise": 10,"fold": 90}, "AQo": {"raise": 40,"fold": 60}, "KQo": {"raise": 10,"fold": 90}, "QQ": {"raise": 100,"fold": 0}, "QJs": {"raise": 10,"fold": 90}, "QTs": {"raise": 10,"fold": 90}, "JJ": {"raise": 40,"fold": 60}, "JTs": {"raise": 10,"fold": 90}, "TT": {"raise": 10,"fold": 90}, "T9s": {"raise": 10,"fold": 90}, "99": {"raise": 10,"fold": 90}, "88": {"raise": 10,"fold": 90}, "77": {"raise": 10,"fold": 90} }, "SB_vs_BTN": { "AA": {"raise": 100,"fold": 0}, "AKs": {"raise": 100,"fold": 0}, "AQs": {"raise": 100,"fold": 0}, "AJs": {"raise": 100,"fold": 0}, "ATs": {"raise": 100,"fold": 0}, "A9s": {"raise": 50,"fold": 50}, "A8s": {"raise": 10,"fold": 90}, "A7s": {"raise": 10,"fold": 90}, "A6s": {"raise": 50,"fold": 50}, "A5s": {"raise": 50,"fold": 50}, "A4s": {"raise": 50,"fold": 50}, "AKo": {"raise": 100,"fold": 0}, "KK": {"raise": 100,"fold": 0}, "KQs": {"raise": 100,"fold": 0}, "KJs": {"raise": 80,"fold": 20}, "KTs": {"raise": 80,"fold": 20}, "AQo": {"raise": 100,"fold": 0}, "KQo": {"raise": 100,"fold": 0}, "QQ": {"raise": 100,"fold": 0}, "QJs": {"raise": 80,"fold": 20}, "QTs": {"raise": 80,"fold": 20}, "AJo": {"raise": 100,"fold": 0}, "KJo": {"raise": 10,"fold": 90}, "JJ": {"raise": 100,"fold": 0}, "JTs": {"raise": 80,"fold": 20}, "ATo": {"raise": 30,"fold": 70}, "TT": {"raise": 100,"fold": 0}, "T9s": {"raise": 80,"fold": 20}, "99": {"raise": 100,"fold": 0}, "88": {"raise": 100,"fold": 0}, "77": {"raise": 50,"fold": 50}, "66": {"raise": 10,"fold": 90}, "55": {"raise": 10,"fold": 90} }, "BB_vs_BTN": { "AA": {"raise": 100,"fold": 0}, "AKs": {"raise": 100,"fold": 0}, "AQs": {"raise": 100,"fold": 0}, "AJs": {"raise": 100,"fold": 0}, "ATs": {"raise": 100,"fold": 0}, "A9s": {"raise": 100,"fold": 0}, "A8s": {"raise": 100,"fold": 0}, "A7s": {"raise": 50,"fold": 50}, "A6s": {"raise": 50,"fold": 50}, "A5s": {"raise": 100,"fold": 0}, "A4s": {"raise": 100,"fold": 0}, "A3s": {"raise": 10,"fold": 90}, "A2s": {"raise": 10,"fold": 90}, "AKo": {"raise": 100,"fold": 0}, "KK": {"raise": 100,"fold": 0}, "KQs": {"raise": 100,"fold": 0}, "KJs": {"raise": 100,"fold": 0}, "KTs": {"raise": 100,"fold": 0}, "K9s": {"raise": 40,"fold": 60}, "AQo": {"raise": 100,"fold": 0}, "KQo": {"raise": 100,"fold": 0}, "QQ": {"raise": 100,"fold": 0}, "QJs": {"raise": 100,"fold": 0}, "QTs": {"raise": 100,"fold": 0}, "Q9s": {"raise": 20,"fold": 80}, "AJo": {"raise": 100,"fold": 0}, "KJo": {"raise": 100,"fold": 0}, "QJo": {"raise": 20,"fold": 80}, "JJ": {"raise": 100,"fold": 0}, "JTs": {"raise": 100,"fold": 0}, "J9s": {"raise": 10,"fold": 90}, "ATo": {"raise": 100,"fold": 0}, "TT": {"raise": 100,"fold": 0}, "T9s": {"raise": 100,"fold": 0}, "A9o": {"raise": 50,"fold": 50}, "99": {"raise": 100,"fold": 0}, "88": {"raise": 100,"fold": 0}, "77": {"raise": 100,"fold": 0}, "66": {"raise": 50,"fold": 50}, "55": {"raise": 50,"fold": 50} }, "BB_vs_UTG": { "AA": {"raise": 100,"fold": 0}, "AKs": {"raise": 100,"fold": 0}, "AQs": {"raise": 100,"fold": 0}, "AJs": {"raise": 50,"fold": 50}, "ATs": {"raise": 30,"fold": 70}, "A5s": {"raise": 40,"fold": 60}, "AKo": {"raise": 100,"fold": 0}, "KK": {"raise": 100,"fold": 0}, "KQs": {"raise": 40,"fold": 60}, "KJs": {"raise": 20,"fold": 80}, "KTs": {"raise": 20,"fold": 80}, "AQo": {"raise": 60,"fold": 40}, "KQo": {"raise": 10,"fold": 90}, "QQ": {"raise": 100,"fold": 0}, "QJs": {"raise": 10,"fold": 90}, "QTs": {"raise": 10,"fold": 90}, "JJ": {"raise": 30,"fold": 70}, "JTs": {"raise": 10,"fold": 90}, "TT": {"raise": 20,"fold": 80}, "T9s": {"raise": 10,"fold": 90}, "99": {"raise": 20,"fold": 80}, "88": {"raise": 20,"fold": 80}, "77": {"raise": 10,"fold": 90}, "66": {"raise": 10,"fold": 90}, "55": {"raise": 10,"fold": 90} } };
+        const rangeData3Bet2_5 = { "BB_vs_BTN_2.5": { "AA": { "raise": 100, "call": 0, "fold": 0 }, "AKs": { "raise": 100, "call": 0, "fold": 0 }, "AQs": { "raise": 100, "call": 0, "fold": 0 }, "AJs": { "raise": 100, "call": 0, "fold": 0 }, "ATs": { "raise": 100, "call": 0, "fold": 0 }, "A9s": { "raise": 80, "call": 20, "fold": 0 }, "A8s": { "raise": 50, "call": 50, "fold": 0 }, "A7s": { "raise": 30, "call": 0, "fold": 70 }, "A6s": { "raise": 10, "call": 80, "fold": 10 }, "A5s": { "raise": 50, "call": 50, "fold": 0 }, "A4s": { "raise": 50, "call": 50, "fold": 0 }, "A3s": { "raise": 30, "call": 20, "fold": 50 }, "A2s": { "raise": 10, "call": 80, "fold": 10 }, "AKo": { "raise": 100, "call": 0, "fold": 0 }, "KK": { "raise": 100, "call": 0, "fold": 0 }, "KQs": { "raise": 80, "call": 20, "fold": 0 }, "KJs": { "raise": 50, "call": 50, "fold": 0 }, "KTs": { "raise": 50, "call": 50, "fold": 0 }, "K9s": { "raise": 30, "call": 20, "fold": 50 }, "K8s": { "raise": 10, "call": 80, "fold": 10 }, "AQo": { "raise": 100, "call": 0, "fold": 0 }, "KQo": { "raise": 50, "call": 50, "fold": 0 }, "QQ": { "raise": 100, "call": 0, "fold": 0 }, "QJs": { "raise": 50, "call": 50, "fold": 0 }, "QTs": { "raise": 50, "call": 50, "fold": 0 }, "Q9s": { "raise": 10, "call": 80, "fold": 10 }, "AJo": { "raise": 50, "call": 50, "fold": 0 }, "KJo": { "raise": 10, "call": 80, "fold": 10 }, "JJ": { "raise": 100, "call": 0, "fold": 0 }, "JTs": { "raise": 50, "call": 50, "fold": 0 }, "J9s": { "raise": 30, "call": 20, "fold": 50 }, "J8s": { "raise": 0, "call": 100, "fold": 0 }, "ATo": { "raise": 10, "call": 80, "fold": 10 }, "KTo": { "raise": 0, "call": 100, "fold": 0 }, "QTo": { "raise": 0, "call": 100, "fold": 0 }, "JTo": { "raise": 0, "call": 100, "fold": 0 }, "TT": { "raise": 100, "call": 0, "fold": 0 }, "T9s": { "raise": 30, "call": 20, "fold": 50 }, "T8s": { "raise": 0, "call": 100, "fold": 0 }, "A9o": { "raise": 0, "call": 100, "fold": 0 }, "K9o": { "raise": 0, "call": 50, "fold": 50 }, "Q9o": { "raise": 0, "call": 50, "fold": 50 }, "99": { "raise": 80, "call": 20, "fold": 0 }, "98s": { "raise": 0, "call": 100, "fold": 0 }, "A8o": { "raise": 0, "call": 100, "fold": 0 }, "88": { "raise": 50, "call": 50, "fold": 0 }, "87s": { "raise": 0, "call": 100, "fold": 0 }, "A7o": { "raise": 0, "call": 50, "fold": 50 }, "77": { "raise": 30, "call": 80, "fold": 0 }, "76s": { "raise": 0, "call": 100, "fold": 0 }, "66": { "raise": 10, "call": 80, "fold": 10 }, "65s": { "raise": 0, "call": 100, "fold": 0 }, "55": { "raise": 0, "call": 100, "fold": 0 }, "54s": { "raise": 0, "call": 100, "fold": 0 }, "44": { "raise": 0, "call": 100, "fold": 0 }, "33": { "raise": 0, "call": 100, "fold": 0 }, "22": { "raise": 0, "call": 100, "fold": 0 } }, "BB_vs_UTG_2.5": { "AA": { "raise": 100, "call": 0, "fold": 0 }, "AKs": { "raise": 100, "call": 0, "fold": 0 }, "AQs": { "raise": 100, "call": 0, "fold": 0 }, "AJs": { "raise": 60, "call": 40, "fold": 0 }, "ATs": { "raise": 30, "call": 40, "fold": 30 }, "A5s": { "raise": 30, "call": 40, "fold": 30 }, "A4s": { "raise": 10, "call": 80, "fold": 10 }, "AKo": { "raise": 100, "call": 0, "fold": 0 }, "KK": { "raise": 100, "call": 0, "fold": 0 }, "KQs": { "raise": 30, "call": 40, "fold": 30 }, "KJs": { "raise": 10, "call": 80, "fold": 10 }, "AQo": { "raise": 30, "call": 10, "fold": 60 }, "QQ": { "raise": 100, "call": 0, "fold": 0 }, "QJs": { "raise": 10, "call": 80, "fold": 10 }, "JJ": { "raise": 60, "call": 40, "fold": 0 }, "JTs": { "raise": 10, "call": 80, "fold": 10 }, "TT": { "raise": 30, "call": 40, "fold": 30 }, "99": { "raise": 10, "call": 80, "fold": 10 }, "A9s": { "raise": 0, "call": 100, "fold": 0 }, "A8s": { "raise": 0, "call": 100, "fold": 0 }, "A7s": { "raise": 0, "call": 100, "fold": 0 }, "A6s": { "raise": 0, "call": 100, "fold": 0 }, "A3s": { "raise": 0, "call": 100, "fold": 0 }, "A2s": { "raise": 0, "call": 100, "fold": 0 }, "KTs": { "raise": 0, "call": 100, "fold": 0 }, "K9s": { "raise": 0, "call": 100, "fold": 0 }, "QTs": { "raise": 0, "call": 100, "fold": 0 }, "J9s": { "raise": 0, "call": 100, "fold": 0 }, "T9s": { "raise": 0, "call": 100, "fold": 0 }, "98s": { "raise": 0, "call": 100, "fold": 0 }, "88": { "raise": 0, "call": 100, "fold": 0 }, "87s": { "raise": 0, "call": 100, "fold": 0 }, "77": { "raise": 0, "call": 100, "fold": 0 }, "76s": { "raise": 0, "call": 100, "fold": 0 }, "66": { "raise": 0, "call": 100, "fold": 0 }, "65s": { "raise": 0, "call": 100, "fold": 0 }, "55": { "raise": 0, "call": 100, "fold": 0 }, "54s": { "raise": 0, "call": 100, "fold": 0 }, "44": { "raise": 0, "call": 100, "fold": 0 }, "33": { "raise": 0, "call": 100, "fold": 0 }, "22": { "raise": 0, "call": 100, "fold": 0 } }, "SB_vs_BTN_2.5": { "AA": { "raise": 100, "call": 0, "fold": 0 }, "AKs": { "raise": 100, "call": 0, "fold": 0 }, "AQs": { "raise": 100, "call": 0, "fold": 0 }, "AJs": { "raise": 100, "call": 0, "fold": 0 }, "ATs": { "raise": 100, "call": 0, "fold": 0 }, "A9s": { "raise": 100, "call": 0, "fold": 0 }, "A8s": { "raise": 100, "call": 0, "fold": 0 }, "A7s": { "raise": 80, "call": 0, "fold": 20 }, "A6s": { "raise": 80, "call": 0, "fold": 20 }, "A5s": { "raise": 100, "call": 0, "fold": 0 }, "A4s": { "raise": 100, "call": 0, "fold": 0 }, "A3s": { "raise": 80, "call": 0, "fold": 20 }, "A2s": { "raise": 40, "call": 0, "fold": 60 }, "AKo": { "raise": 100, "call": 0, "fold": 0 }, "KK": { "raise": 100, "call": 0, "fold": 0 }, "KQs": { "raise": 100, "call": 0, "fold": 0 }, "KJs": { "raise": 100, "call": 0, "fold": 0 }, "KTs": { "raise": 100, "call": 0, "fold": 0 }, "K9s": { "raise": 40, "call": 0, "fold": 60 }, "K8s": { "raise": 10, "call": 0, "fold": 90 }, "AQo": { "raise": 100, "call": 0, "fold": 0 }, "KQo": { "raise": 100, "call": 0, "fold": 0 }, "QQ": { "raise": 100, "call": 0, "fold": 0 }, "QJs": { "raise": 80, "call": 0, "fold": 20 }, "QTs": { "raise": 80, "call": 0, "fold": 20 }, "Q9s": { "raise": 40, "call": 0, "fold": 60 }, "AJo": { "raise": 100, "call": 0, "fold": 0 }, "KJo": { "raise": 80, "call": 0, "fold": 20 }, "QJo": { "raise": 40, "call": 0, "fold": 60 }, "JJ": { "raise": 100, "call": 0, "fold": 0 }, "JTs": { "raise": 80, "call": 0, "fold": 20 }, "J9s": { "raise": 40, "call": 0, "fold": 60 }, "ATo": { "raise": 80, "call": 0, "fold": 20 }, "KTo": { "raise": 40, "call": 0, "fold": 60 }, "TT": { "raise": 100, "call": 0, "fold": 0 }, "T9s": { "raise": 80, "call": 0, "fold": 20 }, "T8s": { "raise": 10, "call": 0, "fold": 90 }, "99": { "raise": 100, "call": 0, "fold": 0 }, "98s": { "raise": 40, "call": 0, "fold": 60 }, "88": { "raise": 100, "call": 0, "fold": 0 }, "77": { "raise": 80, "call": 0, "fold": 20 }, "66": { "raise": 40, "call": 0, "fold": 60 }, "55": { "raise": 10, "call": 0, "fold": 90 } }, "BTN_vs_UTG_2.5": { "AA": { "raise": 100, "call": 0, "fold": 0 }, "AKs": { "raise": 100, "call": 0, "fold": 0 }, "AQs": { "raise": 100, "call": 0, "fold": 0 }, "AJs": { "raise": 80, "call": 10, "fold": 10 }, "ATs": { "raise": 40, "call": 50, "fold": 10 }, "A5s": { "raise": 40, "call": 50, "fold": 10 }, "A4s": { "raise": 10, "call": 0, "fold": 90 }, "A3s": { "raise": 10, "call": 0, "fold": 90 }, "AKo": { "raise": 100, "call": 0, "fold": 0 }, "KK": { "raise": 100, "call": 0, "fold": 0 }, "KQs": { "raise": 40, "call": 50, "fold": 10 }, "KJs": { "raise": 40, "call": 50, "fold": 10 }, "KTs": { "raise": 10, "call": 0, "fold": 90 }, "AQo": { "raise": 80, "call": 80, "fold": 0 }, "QQ": { "raise": 100, "call": 0, "fold": 0 }, "QJs": { "raise": 10, "call": 0, "fold": 90 }, "QTs": { "raise": 10, "call": 0, "fold": 90 }, "JJ": { "raise": 80, "call": 10, "fold": 10 }, "JTs": { "raise": 10, "call": 0, "fold": 90 }, "TT": { "raise": 40, "call": 50, "fold": 10 }, "T9s": { "raise": 10, "call": 0, "fold": 90 }, "99": { "raise": 10, "call": 80, "fold": 10 }, "88": { "raise": 10, "call": 80, "fold": 10 }, "77": { "raise": 0, "call": 50, "fold": 50 }, "66": { "raise": 0, "call": 50, "fold": 50 } }, "HJ_vs_UTG_2.5": { "AA": { "raise": 100, "call": 0, "fold": 0 }, "AKs": { "raise": 100, "call": 0, "fold": 0 }, "AQs": { "raise": 100, "call": 0, "fold": 0 }, "AJs": { "raise": 60, "call": 0, "fold": 40 }, "ATs": { "raise": 30, "call": 0, "fold": 70 }, "A5s": { "raise": 30, "call": 0, "fold": 70 }, "A4s": { "raise": 10, "call": 0, "fold": 90 }, "AKo": { "raise": 100, "call": 0, "fold": 0 }, "KK": { "raise": 100, "call": 0, "fold": 0 }, "KQs": { "raise": 30, "call": 0, "fold": 70 }, "KJs": { "raise": 10, "call": 0, "fold": 90 }, "AQo": { "raise": 60, "call": 0, "fold": 40 }, "QQ": { "raise": 100, "call": 0, "fold": 0 }, "JJ": { "raise": 60, "call": 0, "fold": 40 }, "TT": { "raise": 30, "call": 0, "fold": 70 }, "99": { "raise": 10, "call": 0, "fold": 90 } } };
+
+        // ==========================================
+        // 2. State & Core Logic
+        // ==========================================
+        const ranks = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2'];
+        const suits = [
+            { symbol: '♠', color: 'suit-black', name: 's' }, { symbol: '♥', color: 'suit-red', name: 'h' },
+            { symbol: '♦', color: 'suit-red', name: 'd' }, { symbol: '♣', color: 'suit-black', name: 'c' }
+        ];
+
+        let stats = { correct: 0, total: 0 };
+        let currentHandNotation = "";
+        let currentScenarioType = "open"; 
+        let currentPosKey = "BTN";
+        let mistakes = JSON.parse(localStorage.getItem('poker_mistakes') || '[]');
+        let currentMistakeItem = null;
+
+        const posSelect = document.getElementById('position-select');
+        const scenarioSelect = document.getElementById('scenario-select');
+        const actionToYouText = document.getElementById('ui-action-to-you');
+
+        function toggleDataModal() {
+            const m = document.getElementById('data-modal');
+            m.classList.toggle('hidden');
+            document.getElementById('mistake-count-display').innerText = mistakes.length;
+        }
+
+        function copyMistakesTSV() {
+            if(mistakes.length === 0) return alert("エクスポートする間違えた問題がありません。");
+            let tsv = "Scenario\tPosition\tHand\n";
+            mistakes.forEach(m => tsv += `${m.scenario}\t${m.pos}\t${m.hand}\n`);
+            navigator.clipboard.writeText(tsv).then(() => alert("スプレッドシート用にコピーしました！\nスプレッドシートのA1セルを選択して貼り付け(Ctrl+V)してください。"));
+        }
+
+        function importMistakesTSV() {
+            const text = document.getElementById('import-tsv').value.trim();
+            if(!text) return;
+            const lines = text.split('\n');
+            let imported = 0;
+            lines.forEach((line, i) => {
+                if(i === 0 && line.includes('Scenario')) return;
+                const cols = line.split('\t');
+                if(cols.length === 3) {
+                    mistakes.push({ scenario: cols[0].trim(), pos: cols[1].trim(), hand: cols[2].trim() });
+                    imported++;
+                }
+            });
+            localStorage.setItem('poker_mistakes', JSON.stringify(mistakes));
+            alert(`${imported} 件の問題を復元しました。`);
+            document.getElementById('import-tsv').value = "";
+            toggleDataModal();
+        }
+
+        function clearMistakes() {
+            if(confirm("本当に間違えた問題リストをすべて削除しますか？")) {
+                mistakes = [];
+                localStorage.setItem('poker_mistakes', JSON.stringify(mistakes));
+                document.getElementById('mistake-count-display').innerText = 0;
+            }
+        }
+
+        function updatePositionDropdown() {
+            let type = scenarioSelect.value;
+            
+            if (type === 'mistakes') {
+                posSelect.innerHTML = `<option value="mistakes">From Mistake List</option>`;
+                actionToYouText.innerText = `Reviewing ${mistakes.length} mistakes`;
+                currentScenarioType = 'mistakes';
+                toggleCallButton(true);
+                return;
+            }
+
+            if (type === 'random') {
+                const types = ['open', '3bet', '3bet_2_5'];
+                currentScenarioType = types[Math.floor(Math.random() * types.length)];
+            } else {
+                currentScenarioType = type;
+            }
+
+            posSelect.innerHTML = `<option value="random">🎲 Random Position</option>`;
+            let options = [];
+
+            if (currentScenarioType === 'open') {
+                options = [{val: "UTG", text: "UTG"}, {val: "HJ", text: "HJ"}, {val: "CO", text: "CO"}, {val: "BTN", text: "BTN"}];
+                actionToYouText.innerText = "Folded (RFI)";
+            } else if (currentScenarioType === '3bet') {
+                options = [{val: "HJ_vs_UTG", text: "HJ vs UTG 5BB"}, {val: "BTN_vs_UTG", text: "BTN vs UTG 5BB"}, {val: "SB_vs_BTN", text: "SB vs BTN 5BB"}, {val: "BB_vs_BTN", text: "BB vs BTN 5BB"}, {val: "BB_vs_UTG", text: "BB vs UTG 5BB"}];
+                actionToYouText.innerText = "Facing 5BB Open";
+            } else if (currentScenarioType === '3bet_2_5') {
+                options = [{val: "HJ_vs_UTG_2.5", text: "HJ vs UTG 2.5BB"}, {val: "BTN_vs_UTG_2.5", text: "BTN vs UTG 2.5BB"}, {val: "SB_vs_BTN_2.5", text: "SB vs BTN 2.5BB"}, {val: "BB_vs_BTN_2.5", text: "BB vs BTN 2.5BB"}, {val: "BB_vs_UTG_2.5", text: "BB vs UTG 2.5BB"}];
+                actionToYouText.innerText = "Facing 2.5BB Open";
+            }
+
+            options.forEach(opt => {
+                const isSelected = (opt.val === currentPosKey && type !== 'random') ? 'selected' : '';
+                posSelect.innerHTML += `<option value="${opt.val}" ${isSelected}>${opt.text}</option>`;
+            });
+
+            if (type === 'random' || posSelect.value === 'random') {
+                currentPosKey = options[Math.floor(Math.random() * options.length)].val;
+            } else {
+                currentPosKey = posSelect.value;
+            }
+            
+            document.getElementById('current-pos-label').innerText = currentPosKey.replace('_2.5', '').replace(/_/g, ' ');
+
+            toggleCallButton(currentScenarioType === '3bet_2_5');
+        }
+
+        function toggleCallButton(show) {
+            const btnCall = document.getElementById('btn-call');
+            const controls = document.getElementById('ui-controls');
+            if (show) {
+                btnCall.style.display = 'block';
+                controls.className = "grid grid-cols-3 gap-2 mb-2";
+            } else {
+                btnCall.style.display = 'none';
+                controls.className = "grid grid-cols-2 gap-4 mb-2";
+            }
+        }
+
+        function getRandomHandNotation() {
+            const r1Idx = Math.floor(Math.random() * ranks.length);
+            const r2Idx = Math.floor(Math.random() * ranks.length);
+            let rank1 = ranks[Math.min(r1Idx, r2Idx)];
+            let rank2 = ranks[Math.max(r1Idx, r2Idx)];
+            if (rank1 === rank2) return rank1 + rank2; 
+            return rank1 + rank2 + (Math.random() > 0.5 ? 's' : 'o'); 
+        }
+
+        function generateCardObjects(notation) {
+            const isSuited = notation.endsWith('s');
+            let suit1 = suits[Math.floor(Math.random() * suits.length)];
+            let suit2 = isSuited ? suit1 : suits.filter(s => s.name !== suit1.name)[Math.floor(Math.random() * 3)];
+            return [{ rank: notation[0], suit: suit1 }, { rank: notation[1], suit: suit2 }];
+        }
+
+        function nextHand() {
+            document.getElementById('ui-feedback').classList.add('hidden');
+            document.getElementById('ui-controls').classList.remove('hidden');
+            document.getElementById('btn-next').classList.add('hidden');
+
+            // const prevMistakeUI = document.getElementById('ui-previous-mistake');
+            // if (prevMistakeUI) prevMistakeUI.classList.add('hidden');
+
+            if(scenarioSelect.value === 'mistakes') {
+                if(mistakes.length === 0) {
+                    alert("間違えた問題がありません！素晴らしい！");
+                    scenarioSelect.value = "random";
+                    updatePositionDropdown();
+                    nextHand();
+                    return;
+                }
+                const randomIdx = Math.floor(Math.random() * mistakes.length);
+                currentMistakeItem = mistakes[randomIdx];
+                currentScenarioType = currentMistakeItem.scenario;
+                currentPosKey = currentMistakeItem.pos;
+                currentHandNotation = currentMistakeItem.hand;
+                
+                let bbInfo = currentScenarioType === '3bet_2_5' ? "2.5BB" : "5BB";
+                actionToYouText.innerText = `Review: Facing ${bbInfo} Open`;
+                toggleCallButton(currentScenarioType === '3bet_2_5');
+
+                // ▼ 追加: 前回間違えたアクションを表示 ▼
+                // if (currentMistakeItem.wrongAction && prevMistakeUI) {
+                //     prevMistakeUI.classList.remove('hidden');
+                //     document.getElementById('ui-prev-action').innerText = currentMistakeItem.wrongAction.toUpperCase();
+                // }
+                document.getElementById('current-pos-label').innerText = currentPosKey.replace('_2.5', '').replace(/_/g, ' ');
+            } else {
+                if(scenarioSelect.value === 'random' || posSelect.value === 'random') {
+                    updatePositionDropdown(); 
+                } else {
+                    currentPosKey = posSelect.value;
+                }
+                currentHandNotation = getRandomHandNotation();
+                currentMistakeItem = null;
+            }
+
+            document.getElementById('ui-cards-container').innerHTML = generateCardObjects(currentHandNotation).map(card => `
+                <div class="playing-card">
+                    <div class="card-top ${card.suit.color}"><span>${card.rank}</span><span class="suit-icon">${card.suit.symbol}</span></div>
+                    <div class="card-center ${card.suit.color}">${card.suit.symbol}</div>
+                    <div class="card-bottom ${card.suit.color}"><span>${card.rank}</span><span class="suit-icon">${card.suit.symbol}</span></div>
+                </div>`).join('');
+        }
+
+        function getDataToUse() {
+            if (currentScenarioType === 'open') return rangeDataOpen;
+            if (currentScenarioType === '3bet') return rangeData3Bet;
+            return rangeData3Bet2_5;
+        }
+
+        // ▼ GASのウェブアプリURLをここに貼り付けます ▼
+        const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbx0rApYzsYgE75Km10HOnU0kAaxCJMyFE3D4kXihUd5hX3VvTYNOE6Id4Gj5bwwZYLV/exec";
+
+        function handleAction(userAction) {
+        let dataToUse = getDataToUse();
+        let correctData = dataToUse[currentPosKey][currentHandNotation] || { raise: 0, call: 0, fold: 100 };
+        if(correctData.call === undefined) correctData.call = 0; 
+
+        const isCorrect = correctData[userAction] > 0;
+        stats.total++;
+        if (isCorrect) stats.correct++;
+
+        // ▼ 追加: GAS (Google Spreadsheet) へ非同期で自動保存 ▼
+        if (typeof GAS_WEBAPP_URL !== 'undefined' && GAS_WEBAPP_URL) {
+            let postData = {
+                scenario: currentScenarioType,
+                pos: currentPosKey,
+                hand: currentHandNotation,
+                userAction: userAction
+            };
+
+            // 成功アプリと全く同じ形式（x-www-form-urlencoded 用の文字列化）
+            let payload = "data=" + encodeURIComponent(JSON.stringify(postData));
+
+            fetch(GAS_WEBAPP_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: payload
+            })
+            .then(response => response.text())
+            .then(text => {
+                console.log("スプシ送信結果:", text);
+            })
+            .catch(err => console.error("通信エラー:", err));
+        }
+
+        // ▼ 修正: 間違えた問題に userAction (wrongAction) も含めて記録する ▼
+        if (!isCorrect && scenarioSelect.value !== 'mistakes') {
+            const existingIdx = mistakes.findIndex(m => m.scenario === currentScenarioType && m.pos === currentPosKey && m.hand === currentHandNotation);
+            if (existingIdx === -1) {
+                mistakes.push({ scenario: currentScenarioType, pos: currentPosKey, hand: currentHandNotation, wrongAction: userAction });
+            } else {
+                mistakes[existingIdx].wrongAction = userAction; // 上書き更新
+            }
+            localStorage.setItem('poker_mistakes', JSON.stringify(mistakes));
+        } else if (isCorrect && scenarioSelect.value === 'mistakes') {
+            mistakes = mistakes.filter(m => !(m.scenario === currentMistakeItem.scenario && m.pos === currentMistakeItem.pos && m.hand === currentMistakeItem.hand));
+            localStorage.setItem('poker_mistakes', JSON.stringify(mistakes));
+        }
+
+            // Stats UI
+            document.getElementById('ui-score-correct').innerText = stats.correct;
+            document.getElementById('ui-score-total').innerText = stats.total;
+            document.getElementById('ui-score-percent').innerText = Math.round((stats.correct / stats.total) * 100);
+
+            // Toggle UI
+            document.getElementById('ui-controls').classList.add('hidden');
+            document.getElementById('btn-next').classList.remove('hidden');
+            
+            const feedbackEl = document.getElementById('ui-feedback');
+            feedbackEl.classList.remove('hidden');
+            
+            const titleEl = document.getElementById('feedback-title');
+            if (isCorrect) {
+                feedbackEl.style.borderColor = "#10b981";
+                feedbackEl.style.backgroundColor = "rgba(16, 185, 129, 0.1)";
+                titleEl.style.color = "#34d399";
+                titleEl.innerText = "Correct! 🎉";
+            } else {
+                feedbackEl.style.borderColor = "#ef4444";
+                feedbackEl.style.backgroundColor = "rgba(239, 68, 68, 0.1)";
+                titleEl.style.color = "#f87171";
+                titleEl.innerText = "Incorrect ❌";
+            }
+
+            // Animate Frequency Bar
+            const bR = document.getElementById('bar-raise'), bC = document.getElementById('bar-call'), bF = document.getElementById('bar-fold');
+            bR.style.width = '0%'; bC.style.width = '0%'; bF.style.width = '0%';
+            
+            setTimeout(() => {
+                bR.style.width = `${correctData.raise}%`; bR.innerText = correctData.raise > 0 ? `${correctData.raise}% R` : '';
+                bC.style.width = `${correctData.call}%`; bC.innerText = correctData.call > 0 ? `${correctData.call}% C` : '';
+                bF.style.width = `${correctData.fold}%`; bF.innerText = correctData.fold > 0 ? `${correctData.fold}% F` : '';
+            }, 50);
+
+            let actionType = currentScenarioType === 'open' ? 'Open' : (currentScenarioType === '3bet' ? '3-Bet' : 'Raise');
+            let message = `${currentHandNotation} is `;
+            if(correctData.raise > 0) message += `<span class="text-raise font-bold">${correctData.raise}% ${actionType}</span> `;
+            if(correctData.call > 0) message += `/ <span class="text-call font-bold">${correctData.call}% Call</span> `;
+            if(correctData.fold > 0) message += `/ <span style="color: #60a5fa;" class="font-bold">${correctData.fold}% Fold</span> `;
+            
+            let posLabel = currentPosKey.replace('_2.5', '').replace(/_/g, ' ');
+            document.getElementById('feedback-message').innerHTML = message + `<br><span class="text-xs text-slate-400">(${posLabel})</span>`;
+        }
+
+        // ==========================================
+        // 3. Grid Chart Renderer
+        // ==========================================
+
+
+        // ==========================================
+        // ▼ チャート画面独自の操作ロジック ▼
+        // ==========================================
+        let chartScenarioType = "open";
+        let chartPosKey = "UTG";
+        const chartScenarioSelect = document.getElementById('chart-scenario-select');
+        const chartPositionSelect = document.getElementById('chart-position-select');
+
+        function updateChartPositionDropdown() {
+            chartScenarioType = chartScenarioSelect.value;
+            chartPositionSelect.innerHTML = "";
+            let options = [];
+
+            if (chartScenarioType === 'open') {
+                options = [{val: "UTG", text: "UTG"}, {val: "HJ", text: "HJ"}, {val: "CO", text: "CO"}, {val: "BTN", text: "BTN"}];
+            } else if (chartScenarioType === '3bet') {
+                options = [{val: "HJ_vs_UTG", text: "HJ vs UTG 5BB"}, {val: "BTN_vs_UTG", text: "BTN vs UTG 5BB"}, {val: "SB_vs_BTN", text: "SB vs BTN 5BB"}, {val: "BB_vs_BTN", text: "BB vs BTN 5BB"}, {val: "BB_vs_UTG", text: "BB vs UTG 5BB"}];
+            } else if (chartScenarioType === '3bet_2_5') {
+                options = [{val: "HJ_vs_UTG_2.5", text: "HJ vs UTG 2.5BB"}, {val: "BTN_vs_UTG_2.5", text: "BTN vs UTG 2.5BB"}, {val: "SB_vs_BTN_2.5", text: "SB vs BTN 2.5BB"}, {val: "BB_vs_BTN_2.5", text: "BB vs BTN 2.5BB"}, {val: "BB_vs_UTG_2.5", text: "BB vs UTG 2.5BB"}];
+            }
+
+            let found = options.find(o => o.val === chartPosKey);
+            if(!found) chartPosKey = options[0].val;
+
+            options.forEach(opt => {
+                const isSelected = (opt.val === chartPosKey) ? 'selected' : '';
+                chartPositionSelect.innerHTML += `<option value="${opt.val}" ${isSelected}>${opt.text}</option>`;
+            });
+            renderGrid();
+        }
+
+        function openChartForCurrentPos() {
+            if (currentScenarioType !== 'mistakes' && currentScenarioType !== 'random') {
+                chartScenarioSelect.value = currentScenarioType;
+                updateChartPositionDropdown();
+                chartPositionSelect.value = currentPosKey;
+                chartPosKey = currentPosKey;
+                renderGrid();
+            }
+            document.querySelectorAll('.tab-btn')[1].click(); 
+        }
+
+        chartScenarioSelect.addEventListener('change', updateChartPositionDropdown);
+        chartPositionSelect.addEventListener('change', () => {
+            chartPosKey = chartPositionSelect.value;
+            renderGrid();
+        });
+
+        // 既存の renderGrid() を以下に書き換え
+        function renderGrid() {
+            const grid = document.getElementById('range-grid');
+            if(!grid) return;
+            grid.innerHTML = '';
+            
+            let dataToUse;
+            if (chartScenarioType === 'open') dataToUse = rangeDataOpen;
+            else if (chartScenarioType === '3bet') dataToUse = rangeData3Bet;
+            else dataToUse = rangeData3Bet2_5;
+            
+            const dataSet = dataToUse[chartPosKey] || {};
+
+            for(let i=0; i<13; i++) {
+                for(let j=0; j<13; j++) {
+                    let handStr = "";
+                    if(i===j) handStr = ranks[i] + ranks[j];
+                    else if(i<j) handStr = ranks[i] + ranks[j] + 's';
+                    else handStr = ranks[j] + ranks[i] + 'o';
+
+                    let cellData = dataSet[handStr] || {raise: 0, call: 0, fold: 100};
+                    if(cellData.call === undefined) cellData.call = 0;
+                    
+                    let r = cellData.raise, c = cellData.call, f = cellData.fold;
+                    let bg = `linear-gradient(to right, #ff9a9e ${r}%, #a8e6cf ${r}% ${r+c}%, #3b82f6 ${r+c}% 100%)`;
+                    let textColor = f > 60 ? '#fff' : '#111';
+
+                    grid.innerHTML += `
+                        <div class="grid-cell" style="background: ${bg}; color: ${textColor};">
+                            ${handStr}
+                            <div class="tooltip">Raise: ${r}% | Call: ${c}% | Fold: ${f}%</div>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // タブ切り替え制御
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(`${tabId}-section`).classList.add('active');
+            btnElement.classList.add('active');
+
+            if (tabId === 'chart') {
+                renderGrid(); // タブを開いた時に現在のレンジを描画
+            } else if (tabId === 'review') {
+                renderMistakeList(); // リストを描画
+            }
+        }
+
+        // 間違えた問題一覧の描画
+        function renderMistakeList() {
+            const tbody = document.getElementById('mistake-list-body');
+            tbody.innerHTML = '';
+            if (mistakes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-6 text-slate-400">間違えた問題はありません🎉</td></tr>';
+                return;
+            }
+            mistakes.forEach(m => {
+                tbody.innerHTML += `<tr>
+                    <td class="text-xs">${m.scenario.replace('_', ' ')}</td>
+                    <td class="font-bold text-white">${m.pos.replace('_2.5','')}</td>
+                    <td class="text-blue-400 font-bold">${m.hand}</td>
+                    <td class="text-red-400 font-bold">${m.wrongAction ? m.wrongAction.toUpperCase() : '-'}</td>
+                </tr>`;
+            });
+        }
+
+        // レビュータブから復習モードを開始する
+        function startReviewQuiz() {
+            if(mistakes.length === 0) return alert("間違えた問題がありません！");
+            scenarioSelect.value = 'mistakes';
+            updatePositionDropdown();
+            updateChartPositionDropdown();
+            nextHand();
+            // クイズタブに戻る
+            document.querySelector('.tab-btn').click(); 
+        }
+
+        // Event Listeners
+        posSelect.addEventListener('change', () => { 
+            if(scenarioSelect.value !== 'random' && scenarioSelect.value !== 'mistakes') { 
+                currentPosKey = posSelect.value; 
+            }
+            nextHand(); 
+        });
+        scenarioSelect.addEventListener('change', () => { 
+            updatePositionDropdown(); 
+            nextHand(); 
+        });
+        
+
+        // Init
+        updatePositionDropdown();
+        nextHand();
+    </script>
+</body>
+</html>
