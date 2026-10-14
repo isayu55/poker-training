@@ -309,17 +309,49 @@
             if(!text) return;
             const lines = text.split('\n');
             let imported = 0;
+            
             lines.forEach((line, i) => {
+                // ヘッダー行はスキップ
                 if(i === 0 && line.includes('Scenario')) return;
+                
                 const cols = line.split('\t');
-                if(cols.length === 3) {
-                    mistakes.push({ scenario: cols[0].trim(), pos: cols[1].trim(), hand: cols[2].trim() });
-                    imported++;
+                let scenario, pos, hand, wrongAction;
+
+                // スプレッドシートからのコピー（5列：Timestamp, Scenario, Position, Hand, User Action）
+                if (cols.length >= 4) {
+                    scenario = cols[1]?.trim();
+                    pos = cols[2]?.trim();
+                    hand = cols[3]?.trim();
+                    wrongAction = cols[4]?.trim();
+                } 
+                // エクスポート機能からのコピー（3列：Scenario, Position, Hand）
+                else if (cols.length === 3) {
+                    scenario = cols[0]?.trim();
+                    pos = cols[1]?.trim();
+                    hand = cols[2]?.trim();
+                }
+
+                if (scenario && pos && hand) {
+                    // 重複チェック
+                    const existingIdx = mistakes.findIndex(m => m.scenario === scenario && m.pos === pos && m.hand === hand);
+                    if (existingIdx === -1) {
+                        mistakes.push({ scenario, pos, hand, wrongAction });
+                        imported++;
+                    } else if (wrongAction) {
+                        mistakes[existingIdx].wrongAction = wrongAction; // アクションを更新
+                        imported++;
+                    }
                 }
             });
+
             localStorage.setItem('poker_mistakes', JSON.stringify(mistakes));
-            alert(`${imported} 件の問題を復元しました。`);
+            alert(`${imported} 件のデータを復元（または更新）しました。`);
             document.getElementById('import-tsv').value = "";
+            
+            // 表示を最新化
+            renderMistakeList();
+            document.getElementById('mistake-count-display').innerText = mistakes.length;
+            
             toggleDataModal();
         }
 
