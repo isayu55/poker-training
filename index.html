@@ -61,7 +61,7 @@
         .color-raise { background-color: #dc2626; }
         .color-call { background-color: #a8e6cf; }
         .color-fold { background-color: #3b82f6; }
-        .text-raise { color: #dc2626; } .text-call { color: #a8e6cf; }
+        .text-raise { color: #ffffff; } .text-call { color: #a8e6cf; }
 
         .range-grid { display: grid; grid-template-columns: repeat(13, 1fr); gap: 1px; background-color: #1f2937; border: 1px solid #374151; padding: 2px; border-radius: 0.5rem; }
         .grid-cell { aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: bold; color: #111; cursor: pointer; position: relative; }
@@ -168,7 +168,7 @@
             <div id="ui-controls" class="grid grid-cols-3 gap-2 mb-2">
                 <button onclick="handleAction('fold')" class="color-fold text-white py-4 rounded-xl font-bold text-lg shadow-md">Fold</button>
                 <button id="btn-call" onclick="handleAction('call')" class="color-call text-slate-900 py-4 rounded-xl font-bold text-lg shadow-md">Call</button>
-                <button id="btn-raise" onclick="handleAction('raise')" class="color-raise text-slate-900 py-4 rounded-xl font-bold text-lg shadow-md">Raise</button>
+                <button id="btn-raise" onclick="handleAction('raise')" class="color-raise text-white py-4 rounded-xl font-bold text-lg shadow-md">Raise</button>
             </div>
 
             <button id="btn-next" onclick="nextHand()" class="hidden w-full bg-slate-700 text-white py-4 rounded-xl font-bold text-lg shadow-md mt-2">
@@ -406,8 +406,7 @@
                 currentPosKey = posSelect.value;
             }
             
-            document.getElementById('current-pos-label').innerText = currentPosKey.replace('_2.5', '').replace(/_/g, ' ');
-
+            updatePosAndActionUI();
             toggleCallButton(currentScenarioType === '3bet_2_5');
         }
 
@@ -462,15 +461,8 @@
                 currentHandNotation = currentMistakeItem.hand;
                 
                 let bbInfo = currentScenarioType === '3bet_2_5' ? "2.5BB" : "5BB";
-                actionToYouText.innerText = `Review: Facing ${bbInfo} Open`;
                 toggleCallButton(currentScenarioType === '3bet_2_5');
 
-                // ▼ 追加: 前回間違えたアクションを表示 ▼
-                // if (currentMistakeItem.wrongAction && prevMistakeUI) {
-                //     prevMistakeUI.classList.remove('hidden');
-                //     document.getElementById('ui-prev-action').innerText = currentMistakeItem.wrongAction.toUpperCase();
-                // }
-                document.getElementById('current-pos-label').innerText = currentPosKey.replace('_2.5', '').replace(/_/g, ' ');
             } else {
                 if(scenarioSelect.value === 'random' || posSelect.value === 'random') {
                     updatePositionDropdown(); 
@@ -481,12 +473,44 @@
                 currentMistakeItem = null;
             }
 
+            updatePosAndActionUI();
+
             document.getElementById('ui-cards-container').innerHTML = generateCardObjects(currentHandNotation).map(card => `
                 <div class="playing-card">
                     <div class="card-top ${card.suit.color}"><span>${card.rank}</span><span class="suit-icon">${card.suit.symbol}</span></div>
                     <div class="card-center ${card.suit.color}">${card.suit.symbol}</div>
                     <div class="card-bottom ${card.suit.color}"><span>${card.rank}</span><span class="suit-icon">${card.suit.symbol}</span></div>
                 </div>`).join('');
+        }
+
+        // ▼ 追加: ポジションとアクション表示をコントロールする関数 ▼
+        function updatePosAndActionUI() {
+            // "BB_vs_BTN_2.5" のような文字列から、自分のポジション("BB")だけを抽出
+            let myPos = currentPosKey.split('_')[0];
+            document.getElementById('current-pos-label').innerText = myPos;
+
+            let scenarioToUse = currentScenarioType;
+            let posKeyToUse = currentPosKey;
+            
+            if (currentScenarioType === 'mistakes' && currentMistakeItem) {
+                scenarioToUse = currentMistakeItem.scenario;
+                posKeyToUse = currentMistakeItem.pos;
+            }
+
+            let actionText = "";
+            if (scenarioToUse === 'open') {
+                actionText = "Folded (RFI)";
+            } else if (scenarioToUse === '3bet') {
+                let villain = posKeyToUse.split('_')[2]; // "HJ_vs_UTG" -> "UTG"
+                actionText = `Facing ${villain} 5BB Open`;
+            } else if (scenarioToUse === '3bet_2_5') {
+                let villain = posKeyToUse.split('_')[2]; // "BB_vs_BTN_2.5" -> "BTN"
+                actionText = `Facing ${villain} 2.5BB Open`;
+            } else if (scenarioToUse === 'mistakes') {
+                actionText = `Reviewing mistakes`;
+            }
+            
+            document.getElementById('ui-action-to-you').innerText = actionText;
         }
 
         function getDataToUse() {
@@ -737,9 +761,30 @@
         });
         
 
-        // Init
-        updatePositionDropdown();
-        nextHand();
+        // ▼ 追加: 起動時にスプシから自動取得する機能 ▼
+        async function fetchMistakesFromCloud() {
+            if (typeof GAS_WEBAPP_URL !== 'undefined' && GAS_WEBAPP_URL) {
+                try {
+                    const response = await fetch(GAS_WEBAPP_URL);
+                    const data = await response.json();
+                    if(data && Array.isArray(data)) {
+                        mistakes = data;
+                        localStorage.setItem('poker_mistakes', JSON.stringify(mistakes));
+                        if (typeof renderMistakeList === 'function') renderMistakeList();
+                        console.log("スプシから間違えた問題を同期しました");
+                    }
+                } catch(e) {
+                    console.error("クラウド同期エラー:", e);
+                }
+            }
+        }
+
+        window.onload = function() {
+            updatePositionDropdown();
+            if (typeof updateChartPositionDropdown === 'function') updateChartPositionDropdown();
+            nextHand();
+            fetchMistakesFromCloud(); // アプリを開いた時に自動で読み込む
+        };
     </script>
 </body>
 </html>
