@@ -523,51 +523,47 @@
         const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbx0rApYzsYgE75Km10HOnU0kAaxCJMyFE3D4kXihUd5hX3VvTYNOE6Id4Gj5bwwZYLV/exec";
 
         function handleAction(userAction) {
-        let dataToUse = getDataToUse();
-        let correctData = dataToUse[currentPosKey][currentHandNotation] || { raise: 0, call: 0, fold: 100 };
-        if(correctData.call === undefined) correctData.call = 0; 
+            let dataToUse = getDataToUse();
+            let correctData = dataToUse[currentPosKey][currentHandNotation] || { raise: 0, call: 0, fold: 100 };
+            if(correctData.call === undefined) correctData.call = 0; 
+    
+            const isCorrect = correctData[userAction] > 0;
+            stats.total++;
+            if (isCorrect) stats.correct++;
+    
+            // ▼ 修正: ここが消えていました！ 間違えた時だけ記録する条件分岐 ▼
+            if (!isCorrect && scenarioSelect.value !== 'mistakes') {
 
-        const isCorrect = correctData[userAction] > 0;
-        stats.total++;
-        if (isCorrect) stats.correct++;
+                if (typeof GAS_WEBAPP_URL !== 'undefined' && GAS_WEBAPP_URL) {
+                    let postData = {
+                        scenario: currentScenarioType,
+                        pos: currentPosKey,
+                        hand: currentHandNotation,
+                        userAction: userAction
+                    };
+                    let payload = "data=" + encodeURIComponent(JSON.stringify(postData));
 
-        // ▼ 追加: GAS (Google Spreadsheet) へ非同期で自動保存 ▼
-        if (typeof GAS_WEBAPP_URL !== 'undefined' && GAS_WEBAPP_URL) {
-            let postData = {
-                scenario: currentScenarioType,
-                pos: currentPosKey,
-                hand: currentHandNotation,
-                userAction: userAction
-            };
+                    fetch(GAS_WEBAPP_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: payload
+                    }).catch(err => console.error("通信エラー:", err));
+                }
 
-            // 成功アプリと全く同じ形式（x-www-form-urlencoded 用の文字列化）
-            let payload = "data=" + encodeURIComponent(JSON.stringify(postData));
-
-            fetch(GAS_WEBAPP_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: payload
-            })
-            .then(response => response.text())
-            .then(text => {
-                console.log("スプシ送信結果:", text);
-            })
-            .catch(err => console.error("通信エラー:", err));
-        }
-
-        // ▼ 修正: 間違えた問題に userAction (wrongAction) も含めて記録する ▼
-        if (!isCorrect && scenarioSelect.value !== 'mistakes') {
-            const existingIdx = mistakes.findIndex(m => m.scenario === currentScenarioType && m.pos === currentPosKey && m.hand === currentHandNotation);
-            if (existingIdx === -1) {
-                mistakes.push({ scenario: currentScenarioType, pos: currentPosKey, hand: currentHandNotation, wrongAction: userAction });
-            } else {
-                mistakes[existingIdx].wrongAction = userAction; // 上書き更新
+                // ★ 既存のローカル保存処理 ★
+                const existingIdx = mistakes.findIndex(m => m.scenario === currentScenarioType && m.pos === currentPosKey && m.hand === currentHandNotation);
+                if (existingIdx === -1) {
+                    mistakes.push({ scenario: currentScenarioType, pos: currentPosKey, hand: currentHandNotation, wrongAction: userAction });
+                } else {
+                    mistakes[existingIdx].wrongAction = userAction; // 上書き更新
+                }
+                localStorage.setItem('poker_mistakes', JSON.stringify(mistakes));
+                
+            } else if (isCorrect && scenarioSelect.value === 'mistakes') {
+                // 復習モードで正解した場合はリストから消す
+                mistakes = mistakes.filter(m => !(m.scenario === currentMistakeItem.scenario && m.pos === currentMistakeItem.pos && m.hand === currentMistakeItem.hand));
+                localStorage.setItem('poker_mistakes', JSON.stringify(mistakes));
             }
-            localStorage.setItem('poker_mistakes', JSON.stringify(mistakes));
-        } else if (isCorrect && scenarioSelect.value === 'mistakes') {
-            mistakes = mistakes.filter(m => !(m.scenario === currentMistakeItem.scenario && m.pos === currentMistakeItem.pos && m.hand === currentMistakeItem.hand));
-            localStorage.setItem('poker_mistakes', JSON.stringify(mistakes));
-        }
 
             // Stats UI
             document.getElementById('ui-score-correct').innerText = stats.correct;
