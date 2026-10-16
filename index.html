@@ -109,6 +109,43 @@
             <button class="tab-btn active" onclick="switchTab('quiz', this)">🎲 Quiz</button>
             <button class="tab-btn" onclick="switchTab('chart', this)">📊 Range</button>
             <button class="tab-btn" onclick="switchTab('review', this)">🧠 Review</button>
+            <button class="tab-btn" onclick="switchTab('play', this)">⚔️ Play AI</button>
+            <button class="tab-btn" onclick="switchTab('stats', this)">📈 Stats</button>
+        </div>
+
+        <div id="stats-section" class="section p-5 pt-2">
+            <h2 class="text-xl font-bold mb-4 text-emerald-400">PostFlop Stats</h2>
+            
+            <!-- 絞り込み用プルダウン -->
+            <div class="flex space-x-4 mb-4">
+                <select id="stats-street-select" onchange="renderStatsTable()" class="bg-slate-800 text-sm font-bold text-emerald-400 border border-emerald-500 rounded p-2 outline-none w-1/2">
+                    <option value="Flop">Flop</option>
+                    <option value="Turn">Turn</option>
+                    <option value="River">River</option>
+                </select>
+                <select id="stats-pos-select" onchange="renderStatsTable()" class="bg-slate-800 text-sm font-bold text-blue-400 border border-blue-500 rounded p-2 outline-none w-1/2">
+                    <option value="IP">IP (BTN / CO / HJ)</option>
+                    <option value="OOP">OOP (Others)</option>
+                </select>
+            </div>
+
+            <!-- 横スクロール(overflow-x-auto)を削除し、テーブルの固定幅(min-width)を削除 -->
+            <div class="bg-slate-900 rounded-lg border border-slate-700 p-2">
+                <table class="mistake-table w-full">
+                    <thead>
+                        <tr>
+                            <th>Board /<br>Feature</th>
+                            <th>Check</th>
+                            <th>Call</th>
+                            <!-- Bet/Raiseを2段に修正 -->
+                            <th>Bet /<br>Raise</th>
+                            <th>Fold</th>
+                            <th>Samples</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stats-list-body"></tbody>
+                </table>
+            </div>
         </div>
 
         <!-- ▼ セクション1: クイズ画面 ▼ -->
@@ -228,6 +265,50 @@
             </div>
         </div>
 
+        <!-- ▼ セクション4: 対戦画面 ▼ -->
+        <div id="play-section" class="section p-5 pt-2">
+            <h2 class="text-xl font-bold mb-4 text-emerald-400">VS CPU Mode (BTN vs BB)</h2>
+            <div class="bg-slate-900 rounded-xl p-4 shadow-inner border border-slate-700 text-center relative" style="border-color: rgba(51, 65, 85, 0.5);">
+                
+                <!-- CPU (Villain) -->
+                <div class="mb-4">
+                    <div class="text-slate-400 text-xs font-bold mb-1">CPU (BB) <span id="ui-cpu-stack" class="text-white ml-2">100 BB</span></div>
+                    <div id="ui-cpu-action" class="text-sm font-bold text-red-400 h-5 mb-2 transition-all"></div>
+                    <div class="flex justify-center space-x-2" id="ui-cpu-cards" style="min-height: 85px;">
+                        <!-- CPU Cards (Face down) -->
+                    </div>
+                </div>
+
+                <!-- Board & Pot -->
+                <div class="py-4 border-y border-slate-700 my-4">
+                    <div class="text-emerald-400 text-sm font-bold mb-2">POT: <span id="ui-pot-size" class="text-white text-lg">0 BB</span></div>
+                    <div class="flex justify-center space-x-2" id="ui-board-cards" style="min-height: 85px;">
+                        <!-- Community Cards -->
+                    </div>
+                </div>
+
+                <!-- Hero (You) -->
+                <div class="mt-4">
+                    <div class="flex justify-center space-x-2 mb-2" id="ui-hero-cards" style="min-height: 85px;">
+                        <!-- Hero Cards -->
+                    </div>
+                    <div id="ui-hero-action" class="text-sm font-bold text-blue-400 h-5 mt-2 transition-all"></div>
+                    <div class="text-slate-400 text-xs font-bold mt-1">You (BTN) <span id="ui-hero-stack" class="text-white ml-2">100 BB</span></div>
+                </div>
+            </div>
+
+            <!-- Action Controls -->
+            <div id="play-controls" class="grid grid-cols-3 gap-2 mt-4 hidden">
+                <button onclick="handlePlayAction('fold')" class="color-fold text-white py-3 rounded-xl font-bold text-sm shadow-md">Fold</button>
+                <button onclick="handlePlayAction('call')" class="color-call text-slate-900 py-3 rounded-xl font-bold text-sm shadow-md" id="btn-play-call">Check / Call</button>
+                <button onclick="handlePlayAction('raise')" class="color-raise text-white py-3 rounded-xl font-bold text-sm shadow-md" id="btn-play-raise">Bet / Raise</button>
+            </div>
+            
+            <button id="btn-play-start" onclick="startVsGame()" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-xl shadow-md mt-4">
+                Start Game
+            </button>
+        </div>
+
     <!-- Data Management Modal -->
     <div id="data-modal" class="fixed inset-0 flex items-center justify-center hidden z-50 p-4 bg-black-80">
         <div class="bg-slate-800 rounded-xl border border-slate-600 p-6 w-full max-w-md shadow-2xl relative">
@@ -258,7 +339,7 @@
         // ==========================================
         const rangeDataOpen = { "UTG": {"AA": {"raise": 100,"fold": 0},"AKs": {"raise": 100,"fold": 0},"AQs": {"raise": 100,"fold": 0},"AJs": {"raise": 100,"fold": 0},"ATs": {"raise": 100,"fold": 0},"A9s": {"raise": 100,"fold": 0},"A8s": {"raise": 100,"fold": 0},"A7s": {"raise": 80,"fold": 20},"A6s": {"raise": 50,"fold": 50},"A5s": {"raise": 100,"fold": 0},"A4s": {"raise": 40,"fold": 60},"AKo": {"raise": 100,"fold": 0},"KK": {"raise": 100,"fold": 0},"KQs": {"raise": 100,"fold": 0},"KJs": {"raise": 80,"fold": 20},"KTs": {"raise": 20,"fold": 80},"AQo": {"raise": 100,"fold": 0},"KQo": {"raise": 100,"fold": 0},"QQ": {"raise": 100,"fold": 0},"AJo": {"raise": 60,"fold": 40},"KJ": {"raise": 70,"fold": 30},"JJ": {"raise": 100,"fold": 0},"JTs": {"raise": 5,"fold": 95},"ATo": {"raise": 100,"fold": 0},"KTo": {"raise": 20,"fold": 80},"TT": {"raise": 20,"fold": 80},"T9s": {"raise": 5,"fold": 95},"99": {"raise": 20,"fold": 80},"88": {"raise": 5,"fold": 95},"87s": {"raise":10,"fold": 90},"77": {"raise": 20,"fold": 80},"76s": {"raise": 10,"fold": 90},"66": {"raise": 20,"fold": 80},"65s": {"raise": 30,"fold": 70},"A5o": {"raise": 40,"fold": 60},"55": {"raise": 10,"fold": 90},"54s": {"raise": 30,"fold": 70}},
                                "HJ": {"AA": {"raise": 100,"fold": 0},"AKs": {"raise": 100,"fold": 0},"AQs": {"raise": 100,"fold": 0},"AJs": {"raise": 100,"fold": 0},"ATs": {"raise": 100,"fold": 0},"A9s": {"raise": 100,"fold": 0},"A8s": {"raise": 100,"fold": 0},"A7s": {"raise": 100,"fold": 0},"A6s": {"raise": 100,"fold": 0},"A5s": {"raise": 100,"fold": 0},"A4s": {"raise": 100,"fold": 0},"A3s": {"raise": 5,"fold": 95},"AKo": {"raise": 100,"fold": 0},"KK": {"raise": 100,"fold": 0},"KQs": {"raise": 100,"fold": 0},"KJs": {"raise": 100,"fold": 0},"KTs": {"raise": 30,"fold": 70},"AQo": {"raise": 100,"fold": 0},"KQo": {"raise": 100,"fold": 0},"QQ": {"raise": 100,"fold": 0},"QJs": {"raise": 40,"fold": 60},"AJo": {"raise": 100,"fold": 0},"KJo": {"raise": 100,"fold": 0},"JJ": {"raise": 100,"fold": 0},"JTs": {"raise": 20,"fold": 80},"ATo": {"raise": 100,"fold": 0},"KTo": {"raise": 40,"fold": 60}, "TT": {"raise": 30,"fold": 70},"A9o": {"raise": 20,"fold": 80},"99": {"raise": 20,"fold": 80},"A8o": {"raise": 30,"fold": 70},"88": {"raise": 20,"fold": 80},"A7o": {"raise": 20,"fold": 80},"77": {"raise": 20,"fold": 80},"76s": {"raise": 20,"fold": 80},"66": {"raise": 30,"fold": 70},"65s": {"raise": 10,"fold": 90},"A5o": {"raise": 60,"fold": 40},"54s": {"raise": 40,"fold": 60},"A4o": {"raise": 20,"fold": 80}},
-                               "CO": {"AA": {"raise": 100,"fold": 0},"AKs": {"raise": 100,"fold": 0},"AQs": {"raise": 100,"fold": 0},"AJs": {"raise": 100,"fold": 0},"ATs": {"raise": 100,"fold": 0},"A9s": {"raise": 100,"fold": 0},"A8s": {"raise": 50,"fold": 50},"A7s": {"raise": 80,"fold": 0},"A6s": {"raise": 100,"fold": 0},"A5s": {"raise": 100,"fold": 0},"A4s": {"raise": 50,"fold": 50},"AKo": {"raise": 100,"fold": 0},"KK": {"raise": 100,"fold": 0},"KQs": {"raise": 100,"fold": 0},"KJs": {"raise": 100,"fold": 0},"KTs": {"raise": 100,"fold": 0},"AQo": {"raise": 100,"fold": 0},"KQo": {"raise": 100,"fold": 0},"QQ": {"raise": 100,"fold": 0},"QJs": {"raise": 100,"fold": 0},"QTs": {"raise": 100,"fold": 0},"AJo": {"raise": 100,"fold": 0},"KJo": {"raise": 100,"fold": 0},"QJo": {"raise": 100,"fold": 0},"JJ": {"raise": 100,"fold": 0},"JTs": {"raise": 60,"fold": 40},"ATo": {"raise": 100,"fold": 0},"KTo": {"raise": 100,"fold": 0},"QTo": {"raise": 20,"fold": 80},"TT": {"raise": 100,"fold": 0},"A9o": {"raise": 100,"fold": 0},"99": {"raise": 40,"fold": 60},"A8o": {"raise": 80,"fold": 20},"88": {"raise": 40,"fold": 60},"A7o": {"raise": 70,"fold": 30},"77": {"raise": 30,"fold": 70},"76s": {"raise": 10,"fold": 90},"A6o": {"raise": 40,"fold": 60},"66": {"raise": 30,"fold": 70},"65s": {"raise": 40,"fold": 60},"A5o": {"raise": 100,"fold": 20},"55": {"raise": 10,"fold": 90},"54s": {"raise": 40,"fold": 60},"A4o": {"raise": 20,"fold": 80}},
+                               "CO": {"AA": {"raise": 100,"fold": 0},"AKs": {"raise": 100,"fold": 0},"AQs": {"raise": 100,"fold": 0},"AJs": {"raise": 100,"fold": 0},"ATs": {"raise": 100,"fold": 0},"A9s": {"raise": 100,"fold": 0},"A8s": {"raise": 50,"fold": 50},"A7s": {"raise": 80,"fold": 0},"A6s": {"raise": 100,"fold": 0},"A5s": {"raise": 100,"fold": 0},"A4s": {"raise": 50,"fold": 50},"AKo": {"raise": 100,"fold": 0},"KK": {"raise": 100,"fold": 0},"KQs": {"raise": 100,"fold": 0},"KJs": {"raise": 100,"fold": 0},"KTs": {"raise": 100,"fold": 0},"AQo": {"raise": 100,"fold": 0},"KQo": {"raise": 100,"fold": 0},"QQ": {"raise": 100,"fold": 0},"QJs": {"raise": 100,"fold": 0},"QTs": {"raise": 100,"fold": 0},"AJo": {"raise": 100,"fold": 0},"KJo": {"raise": 100,"fold": 0},"QJo": {"raise": 100,"fold": 100},"JJ": {"raise": 100,"fold": 0},"JTs": {"raise": 60,"fold": 40},"ATo": {"raise": 100,"fold": 0},"KTo": {"raise": 100,"fold": 0},"QTo": {"raise": 20,"fold": 80},"TT": {"raise": 100,"fold": 0},"A9o": {"raise": 100,"fold": 0},"99": {"raise": 40,"fold": 60},"A8o": {"raise": 80,"fold": 20},"88": {"raise": 40,"fold": 60},"A7o": {"raise": 70,"fold": 30},"77": {"raise": 30,"fold": 70},"76s": {"raise": 10,"fold": 90},"A6o": {"raise": 40,"fold": 60},"66": {"raise": 30,"fold": 70},"65s": {"raise": 40,"fold": 60},"A5o": {"raise": 100,"fold": 20},"55": {"raise": 10,"fold": 90},"54s": {"raise": 40,"fold": 60},"A4o": {"raise": 20,"fold": 80}},
                                "BTN": {"AA": {"raise": 100,"fold": 0},"AKs": {"raise": 100,"fold": 0},"AQs": {"raise": 100,"fold": 0},"AJs": {"raise": 100,"fold": 0},"ATs": {"raise": 100,"fold": 0},"A9s": {"raise": 100,"fold": 0},"A8s": {"raise": 100,"fold": 0},"A7s": {"raise": 100,"fold": 0},"A6s": {"raise": 100,"fold": 0},"A5s": {"raise": 100,"fold": 0},"A4s": {"raise": 100,"fold": 0},"A3s": {"raise": 100,"fold": 0},"A2s": {"raise": 100,"fold": 0},"AKo": {"raise": 100,"fold": 0},"KK": {"raise": 100,"fold": 0},"KQs": {"raise": 100,"fold": 0},"KJs": {"raise": 100,"fold": 0},"KTs": {"raise": 100,"fold": 0},"K9s": {"raise": 100,"fold": 0},"K8s": {"raise": 100,"fold": 0},"AQo": {"raise": 100,"fold": 0},"KQo": {"raise": 100,"fold": 0},"QQ": {"raise": 100,"fold": 0},"QJs": {"raise": 100,"fold": 0},"QTs": {"raise": 100,"fold": 0},"Q9s": {"raise": 100,"fold": 0},"AJo": {"raise": 100,"fold": 0},"KJo": {"raise": 100,"fold": 0},"QJo": {"raise": 100,"fold": 0},"JJ": {"raise": 100,"fold": 0},"JTs": {"raise": 100,"fold": 0},"J9s": {"raise": 60,"fold": 40},"ATo": {"raise": 100,"fold": 0},"KTo": {"raise": 100,"fold": 0},"QTo": {"raise": 100,"fold": 0},"JTo": {"raise": 100,"fold": 0},"TT": {"raise": 100,"fold": 0},"T9s": {"raise": 100,"fold": 0},"T8s": {"raise": 40,"fold": 60},"A9o": {"raise": 100,"fold": 0},"K9o": {"raise": 70,"fold": 30},"Q9o": {"raise": 60,"fold": 40},"99": {"raise": 100,"fold": 0},"98s": {"raise": 10,"fold": 90},"A8o": {"raise": 100,"fold": 0},"K8o": {"raise": 50,"fold": 50},"88": {"raise": 100,"fold": 0},"A7o": {"raise": 80,"fold": 20},"77": {"raise": 100,"fold": 0},"76s": {"raise": 20,"fold": 80},"A6o": {"raise": 100,"fold": 0},"66": {"raise": 100,"fold": 0},"65s": {"raise": 30,"fold": 70},"A5o": {"raise": 100,"fold": 0},"55": {"raise": 100,"fold": 0},"54s": {"raise": 70,"fold": 30},"A4o": {"raise": 100,"fold": 0},"A3o": {"raise": 100,"fold": 0},"A2o": {"raise": 100,"fold": 0} } };
         const rangeData3Bet = { "HJ_vs_UTG": { "AA": {"raise": 100,"fold": 0}, "AKs": {"raise": 100,"fold": 0}, "AQs": {"raise": 100,"fold": 0}, "AJs": {"raise": 20,"fold": 80}, "ATs": {"raise": 40,"fold": 60},"A9s": {"raise": 40,"fold": 60}, "A8s": {"raise": 50,"fold": 50},"A5s": {"raise": 60,"fold": 40}, "A4s": {"raise": 40,"fold": 60}, "AKo": {"raise": 100,"fold": 0}, "KK": {"raise": 100,"fold": 0}, "KQs": {"raise": 100,"fold": 0}, "KJs": {"raise": 70,"fold": 30}, "KTs": {"raise": 90,"fold": 10},"K9s": {"raise": 50,"fold": 50},"K7s": {"raise": 10,"fold": 0},"K6s": {"raise": 10,"fold": 0},"K5s": {"raise": 10,"fold": 0},"K4s": {"raise": 5,"fold": 95}, "AQo": {"raise": 40,"fold": 60}, "QQ": {"raise": 100,"fold": 0}, "JJ": {"raise": 30,"fold": 70}, "TT": {"raise": 20,"fold": 80}, "99": {"raise": 5,"fold": 95}, "88": {"raise": 20,"fold": 80},"87s": {"raise": 10,"fold": 90}, "77": {"raise": 5,"fold": 95},"76s": {"raise": 20,"fold": 80}, "65s": {"raise": 30,"fold": 70} },
                                "BTN_vs_UTG": { "AA": {"raise": 100,"fold": 0}, "AKs": {"raise": 100,"fold": 0}, "AQs": {"raise": 50, "call": 50, "fold": 0}, "AJs": {"raise": 0, "call": 10, "fold": 90}, "ATs": {"raise": 20,"fold": 80}, "A9s": {"raise": 50,"fold": 50},"A8s": {"raise": 50,"fold": 50}, "A5s": {"raise": 50,"fold": 50}, "A4s": {"raise": 60,"fold": 40}, "AKo": {"raise": 90, "call": 10, "fold": 0}, "KK": {"raise": 100,"fold": 0}, "KQs": {"raise": 100,"fold": 0}, "KJs": {"raise": 70,"fold": 30}, "KTs": {"raise": 90,"fold": 10},"K9s": {"raise": 90,"fold": 10},"K7s": {"raise": 15,"fold": 85},"K6s": {"raise": 20,"fold": 80},"K4s": {"raise": 10,"fold": 90}, "AQo": {"raise": 60,"fold": 40}, "KQo": {"raise": 20,"fold": 80}, "QQ": {"raise": 100,"fold": 0}, "JJ": {"raise": 30, "call":20, "fold": 60}, "JTs": {"raise": 0,"call": 10, "fold": 90}, "TT": {"raise": 20,"call":10, "fold": 70}, "99": {"raise": 20,"call":5, "fold": 75}, "88": {"raise": 15, "call":5,"fold": 85}, "77": {"raise": 5,"call":5,"fold": 90}, "65s": {"raise": 10,"call":10,"fold": 80}, "54s": {"raise": 0,"call":20,"fold": 80} },
@@ -772,6 +853,621 @@
                 } catch(e) {
                     console.error("クラウド同期エラー:", e);
                 }
+            }
+        }
+
+        // ==========================================
+        // ▼ VS CPU モード独自の操作ロジック ▼
+        // ==========================================
+        
+        // カードのランクを数値化（AIの役判定用）
+        const rankToNum = { 'A':14, 'K':13, 'Q':12, 'J':11, 'T':10, '9':9, '8':8, '7':7, '6':6, '5':5, '4':4, '3':3, '2':2 };
+        // ▼ 追加: 2枚のカードオブジェクトから "AKs" "42o" などの文字列を取得する関数 ▼
+        function getHandNotationStr(c1, c2) {
+            const r1 = ranks.indexOf(c1.rank);
+            const r2 = ranks.indexOf(c2.rank);
+            // r1, r2 はインデックスが小さいほど強い (A=0, K=1...)
+            const highCard = r1 <= r2 ? c1 : c2;
+            const lowCard  = r1 <= r2 ? c2 : c1;
+            
+            if (highCard.rank === lowCard.rank) {
+                return highCard.rank + lowCard.rank; // ポケットペア
+            }
+            return highCard.rank + lowCard.rank + (highCard.suit.name === lowCard.suit.name ? 's' : 'o');
+        }
+        // ==========================================
+        // ▼ ポストフロップ分析エンジン ▼
+        // ==========================================
+        // ★ 追加：記録の初期化 ★
+            handRecord = {
+                // position: currentPosKey.split('_')[0], ← 削除（クイズタブの選択に依存してしまうため）
+                position: "BTN", // VS CPUモードは常に自分がBTN(IP)として記録する
+                isPFR: false, // 自分がオリジナルレイザーか
+                flop: { texture: null, action: null },
+                turn: { cardType: null, madeHand: null, action: null },
+                river: { cardType: null, madeHand: null, action: null },
+                lines: { doubleBarrel: false, tripleBarrel: false, checkRaise: false }
+            };
+
+        // フロップのテクスチャ判定
+        function getFlopTexture(b) {
+            let ranks = b.map(c => rankToNum[c.rank]).sort((x,y) => y-x);
+            let suits = b.map(c => c.suit.name);
+            
+            let suitCounts = {}; suits.forEach(s => suitCounts[s] = (suitCounts[s]||0)+1);
+            let maxSuit = Math.max(...Object.values(suitCounts));
+            let tone = maxSuit === 3 ? 'Monotone' : (maxSuit === 2 ? 'Two-tone' : 'Rainbow');
+
+            let connected = (ranks[0]-ranks[1]===1 || ranks[1]-ranks[2]===1) ? 'Connected' : 'Disconnected';
+            let paired = (ranks[0]===ranks[1] || ranks[1]===ranks[2]) ? 'Paired' : 'Unpaired';
+
+            let high = '';
+            if (ranks[0] === 14) {
+                high = ranks[1] >= 10 ? 'A-high (2nd T+)' : 'A-high (2nd 9-)';
+            } else if (ranks[0] >= 12) {
+                high = 'KQ-high';
+            } else {
+                high = 'J-high or lower';
+            }
+            return { tone, connected, paired, high };
+        }
+
+        // ターン・リバーで落ちたカードの性質判定
+        function getNewCardType(oldBoard, newCard) {
+            let oldRanks = oldBoard.map(c => rankToNum[c.rank]).sort((x,y)=>y-x);
+            let nRank = rankToNum[newCard.rank];
+            
+            let isOvercard = nRank > oldRanks[0];
+            let isPairing = oldRanks.includes(nRank);
+            
+            let allSuits = [...oldBoard, newCard].map(c => c.suit.name);
+            let suitCounts = {}; allSuits.forEach(s => suitCounts[s] = (suitCounts[s]||0)+1);
+            let isFlushComplete = Math.max(...Object.values(suitCounts)) >= 3 && suitCounts[newCard.suit.name] >= 3;
+
+            if (isOvercard) return "Overcard";
+            if (isPairing) return "Pairing Card";
+            if (isFlushComplete) return "Flush Completing Card";
+            return "Blank / Brick"; // ラグ
+        }
+
+        // 自分の完成役を簡易文字列化
+        function getMyHandStrengthStr(hand, board) {
+            let res = evaluateHand(hand, board); // 既存の判定関数を利用
+            if (res.category === 'monster') return "Flush/Straight";
+            if (res.category === 'value') return "Top Pair / Two Pair+";
+            if (res.category === 'marginal') return "Middle/Bottom Pair or A-high";
+            if (res.category === 'bluff') return "Draw";
+            return "No Made Hand";
+        }
+
+        let deck = [], board = [], heroHand = [], cpuHand = [];
+        let pot = 0, heroStack = 100, cpuStack = 100;
+        let heroInvested = 0, cpuInvested = 0; // そのストリートで出した額
+        let currentStreet = 0; // 0:Preflop, 1:Flop, 2:Turn, 3:River, 4:Showdown
+        let playerActed = { hero: false, cpu: false }; // アクション済かどうかのフラグ
+        let isHeroTurn = false;
+
+        function buildDeck() {
+            deck = [];
+            for (let r of ranks) {
+                for (let s of suits) {
+                    deck.push({ rank: r, suit: s });
+                }
+            }
+            // シャッフル
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+        }
+
+        function renderMiniCard(card) {
+            return `<div style="width:60px; height:85px; background-color:white; border-radius:0.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); position:relative; color:#111; user-select:none; flex-shrink: 0;">
+                        <div class="${card.suit.color}" style="position:absolute; top:4px; left:4px; display:flex; flex-direction:column; align-items:center; line-height:1; font-weight:900; font-size:16px;">
+                            <span>${card.rank}</span>
+                            <span style="font-size:12px;">${card.suit.symbol}</span>
+                        </div>
+                        <div class="${card.suit.color}" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); font-size:28px; opacity:0.2;">
+                            ${card.suit.symbol}
+                        </div>
+                        <div class="${card.suit.color}" style="position:absolute; bottom:4px; right:4px; display:flex; flex-direction:column; align-items:center; line-height:1; font-weight:900; font-size:16px; transform:rotate(180deg);">
+                            <span>${card.rank}</span>
+                            <span style="font-size:12px;">${card.suit.symbol}</span>
+                        </div>
+                    </div>`;
+        }
+
+        function startVsGame() {
+            buildDeck();
+            heroHand = [deck.pop(), deck.pop()];
+            let validCpuHand = false;
+            while (!validCpuHand) {
+                let c1 = deck.pop();
+                let c2 = deck.pop();
+                let notation = getHandNotationStr(c1, c2);
+                let chart = rangeData3Bet2_5["BB_vs_BTN_2.5"][notation] || { raise: 0, call: 0, fold: 100 };
+                
+                if (chart.call > 0 || chart.raise > 0) {
+                    cpuHand = [c1, c2];
+                    validCpuHand = true;
+                } else {
+                    // レンジ外の場合はデッキに戻してシャッフルし直す
+                    deck.push(c1, c2);
+                    for (let i = deck.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [deck[i], deck[j]] = [deck[j], deck[i]];
+                    }
+                }
+            }
+            board = [];
+            
+            heroStack = 99.5; cpuStack = 99.0;
+            pot = 0; heroInvested = 0.5; cpuInvested = 1.0;
+            currentStreet = 0;
+            playerActed = { hero: false, cpu: false };
+            isHeroTurn = true;
+
+            // ★ 追加：記録の初期化 ★
+            handRecord = {
+                position: currentPosKey.split('_')[0],
+                isPFR: false, // 自分がオリジナルレイザーか
+                flop: { texture: null, action: null },
+                turn: { cardType: null, madeHand: null, action: null },
+                river: { cardType: null, madeHand: null, action: null },
+                lines: { doubleBarrel: false, tripleBarrel: false, checkRaise: false }
+            };
+
+            document.getElementById('play-controls').classList.remove('hidden');
+            document.getElementById('btn-play-start').classList.add('hidden');
+            document.querySelectorAll('#play-controls button').forEach(b => b.style.opacity = "1");
+            
+            setActionText('cpu', 'POSTS 1.0 BB', '#94a3b8');
+            setActionText('hero', 'POSTS 0.5 BB', '#94a3b8');
+
+            updatePlayUI();
+            updateButtonsUI();
+        }
+
+        function setActionText(who, text, color) {
+            let el = document.getElementById(`ui-${who}-action`);
+            el.innerText = text;
+            el.style.color = color;
+        }
+
+        function updatePlayUI() {
+            let displayPot = pot + heroInvested + cpuInvested;
+            document.getElementById('ui-pot-size').innerText = displayPot.toFixed(1) + " BB";
+            document.getElementById('ui-hero-stack').innerText = heroStack.toFixed(1) + " BB";
+            document.getElementById('ui-cpu-stack').innerText = cpuStack.toFixed(1) + " BB";
+            
+            document.getElementById('ui-hero-cards').innerHTML = heroHand.map(c => renderMiniCard(c)).join('');
+            
+            if (currentStreet >= 4) { // ショーダウンでCPUハンド公開
+                document.getElementById('ui-cpu-cards').innerHTML = cpuHand.map(c => renderMiniCard(c)).join('');
+            } else {
+                document.getElementById('ui-cpu-cards').innerHTML = `<div class="rounded" style="width:60px; height:85px; background:linear-gradient(135deg, #1e293b 25%, #334155 25%, #334155 50%, #1e293b 50%, #1e293b 75%, #334155 75%, #334155 100%); background-size: 20px 20px; border: 2px solid #475569;"></div><div class="rounded" style="width:60px; height:85px; background:linear-gradient(135deg, #1e293b 25%, #334155 25%, #334155 50%, #1e293b 50%, #1e293b 75%, #334155 75%, #334155 100%); background-size: 20px 20px; border: 2px solid #475569;"></div>`;
+            }
+            
+            document.getElementById('ui-board-cards').innerHTML = board.map(c => renderMiniCard(c)).join('');
+        }
+
+        // 状況に応じてボタンのテキストを「Check」や「Call 〇〇 BB」に変更する
+        function updateButtonsUI() {
+            const btnCall = document.getElementById('btn-play-call');
+            const btnRaise = document.getElementById('btn-play-raise');
+            let callAmount = cpuInvested - heroInvested;
+            
+            if (callAmount > 0) {
+                btnCall.innerText = `Call ${callAmount.toFixed(1)} BB`;
+                btnRaise.innerText = "Raise";
+            } else {
+                btnCall.innerText = "Check";
+                btnRaise.innerText = "Bet";
+            }
+        }
+
+        // ボードとハンドから「強さカテゴリ」を判定する簡易AIエンジン
+        function evaluateHand(hand, board) {
+            if (board.length === 0) return { category: 'marginal' }; // プリフロは適当に流す
+
+            let allCards = [...hand, ...board];
+            let ranksCount = {}, suitsCount = {};
+            let isFlushDraw = false, isBdFd = false;
+            let myHighCard = Math.max(rankToNum[hand[0].rank], rankToNum[hand[1].rank]);
+
+            allCards.forEach(c => {
+                let r = rankToNum[c.rank];
+                ranksCount[r] = (ranksCount[r] || 0) + 1;
+                suitsCount[c.suit.name] = (suitsCount[c.suit.name] || 0) + 1;
+            });
+
+            let pairs = Object.values(ranksCount).filter(v => v === 2).length;
+            let threeOfAKind = Object.values(ranksCount).some(v => v >= 3);
+            
+            let maxSuit = Math.max(...Object.values(suitsCount));
+            if (maxSuit >= 5) return { category: 'monster' }; // フラッシュ
+            if (maxSuit === 4 && hand.some(c => suitsCount[c.suit.name] === 4)) isFlushDraw = true; // 自分のカードを使ったFD
+            if (maxSuit === 3 && hand.some(c => suitsCount[c.suit.name] === 3)) isBdFd = true; // バックドアFD
+
+            if (threeOfAKind || pairs >= 2) return { category: 'value' }; // ツーペア・セット以上
+
+            let boardRanks = board.map(c => rankToNum[c.rank]).sort((a,b)=>b-a);
+            let topBoard = boardRanks[0];
+            let isTopPair = hand.some(c => rankToNum[c.rank] === topBoard);
+            let isMiddlePair = hand.some(c => rankToNum[c.rank] === boardRanks[1] || (boardRanks.length > 2 && rankToNum[c.rank] === boardRanks[2]));
+
+            if (isTopPair) return { category: 'value' }; // トップペアはバリュー
+            if (isMiddlePair) return { category: 'marginal' }; // ミドルはマージナル
+
+            if (myHighCard >= 12 && isBdFd) return { category: 'bluff' }; // Qハイ、Kハイ+BDFD はブラフ
+            if (isFlushDraw) return { category: 'bluff' }; // FDはブラフ
+
+            if (myHighCard === 14) return { category: 'marginal' }; // Aハイはキャッチ寄り
+            
+            return { category: 'trash' }; // それ以外はゴミ
+        }
+
+        // ★ handlePlayAction の中にアクション記録を追記 ★
+        function handlePlayAction(action) {
+            if (!isHeroTurn) return;
+
+            let amountToAdd = 0;
+            let actText = "";
+            let actColor = "#f87171";
+
+            if (action === 'fold') {
+                setActionText('hero', 'FOLDS', '#60a5fa');
+                recordHeroAction("FOLD"); // ★ 記録
+                endVsGame("CPU WINS");
+                return;
+            } else if (action === 'call') {
+                if (cpuInvested > heroInvested) { actText = "CALL"; actColor = "#34d399"; }
+                else { actText = "CHECKS"; actColor = "#34d399"; }
+                amountToAdd = cpuInvested - heroInvested;
+                recordHeroAction(actText); // ★ 記録
+            } else if (action === 'raise') {
+                let raiseSize = currentStreet === 0 ? 2.5 : Math.max((pot + heroInvested + cpuInvested) / 2, 1);
+                if (currentStreet === 0 && heroInvested === 0.5) amountToAdd = 2.0; 
+                else amountToAdd = (cpuInvested - heroInvested) + raiseSize;
+                actText = (cpuInvested > 0 || currentStreet === 0) ? "RAISE" : "BET";
+                
+                if (currentStreet === 0) handRecord.isPFR = true; // プリフロでレイズしたらPFR
+                
+                // ★ チェックレイズ・バレル判定 ★
+                if (currentStreet > 0 && cpuInvested > heroInvested && playerActed.hero === false && handRecord.position === 'BB') {
+                    handRecord.lines.checkRaise = true; // OOPでチェックせずにいきなりレイズ＝ドンクかチェックレイズ
+                }
+                recordHeroAction(actText); // ★ 記録
+            }
+
+            heroStack -= amountToAdd;
+            heroInvested += amountToAdd;
+            playerActed.hero = true;
+            
+            setActionText('hero', actText, actColor);
+            updatePlayUI();
+            checkStreetEndOrCpuTurn();
+        }
+
+        function checkStreetEndOrCpuTurn() {
+            // お互いに行動済み ＆ 出した額が同じならストリート終了
+            if (playerActed.hero && playerActed.cpu && heroInvested === cpuInvested) {
+                setTimeout(advanceStreet, 1000); // 1秒間アクション結果を見せてからカードを配る
+            } else {
+                isHeroTurn = false;
+                document.querySelectorAll('#play-controls button').forEach(b => b.style.opacity = "0.5");
+                setActionText('cpu', 'Thinking...', '#94a3b8');
+                setTimeout(executeCpuTurn, 1200); // CPUの思考時間
+            }
+        }
+
+        function executeCpuTurn() {
+            let cpuAct = "CHECKS";
+            let amountToAdd = 0;
+
+            // ▼ 追加: プリフロップ(currentStreet === 0)の場合はレンジ表通りにプレイする ▼
+            if (currentStreet === 0) {
+                let notation = getHandNotationStr(cpuHand[0], cpuHand[1]);
+                let chart = rangeData3Bet2_5["BB_vs_BTN_2.5"][notation];
+                
+                // コールとレイズの合計確率からランダムに決定
+                let totalDefend = chart.raise + chart.call;
+                let rand = Math.random() * totalDefend;
+                
+                if (chart.raise > 0 && rand < chart.raise) {
+                    cpuAct = "RAISE";
+                } else {
+                    cpuAct = "CALL";
+                }
+            } 
+            // ▼ 既存: ポストフロップのAIロジック ▼
+            else {
+                let evalResult = evaluateHand(cpuHand, board);
+                let cat = evalResult.category;
+                let rand = Math.random() * 100;
+                let facingBet = (heroInvested > cpuInvested); // プレイヤーにベットされているか
+
+                if (facingBet) {
+                    if (cat === 'value' || cat === 'monster') {
+                        if (rand < 50) cpuAct = "RAISE"; else cpuAct = "CALL";
+                    } else if (cat === 'bluff') { // ドロー系
+                        if (currentStreet === 1) {
+                            if (rand < 30) cpuAct = "RAISE"; else cpuAct = "CALL";
+                        } else {
+                            if (rand < 30) cpuAct = "RAISE"; else if (rand < 60) cpuAct = "CALL"; else cpuAct = "FOLD";
+                        }
+                    } else if (cat === 'marginal') { // ペア系
+                        // ▼ ワンペア以上は100%コールかレイズ ▼
+                        if (rand < 10) cpuAct = "RAISE"; else cpuAct = "CALL";
+                    } else {
+                        // ▼ 役なしの場合、オーバーカードか判定 ▼
+                        let boardMaxRank = Math.max(...board.map(c => rankToNum[c.rank]));
+                        let hasOvercard = (rankToNum[cpuHand[0].rank] > boardMaxRank || rankToNum[cpuHand[1].rank] > boardMaxRank);
+
+                        if (hasOvercard) {
+                            // オーバーカードがある場合は高確率でコール
+                            if (rand < 10) cpuAct = "RAISE"; 
+                            else if (rand < 80) cpuAct = "CALL"; 
+                            else cpuAct = "FOLD";
+                        } else {
+                            // それ以外は基本的にフォールド
+                            if (rand < 5) cpuAct = "RAISE";
+                            else if (rand < 15) cpuAct = "CALL";
+                            else cpuAct = "FOLD";
+                        }
+                    }
+                } else {
+                    if (cat === 'value' || cat === 'monster') {
+                        if (rand < 80) cpuAct = "BET"; else cpuAct = "CHECKS";
+                    } else if (cat === 'bluff') {
+                        if (rand < 60) cpuAct = "BET"; else cpuAct = "CHECKS";
+                    } else if (cat === 'marginal') {
+                        if (rand < 20) cpuAct = "BET"; else cpuAct = "CHECKS";
+                    } else {
+                        if (rand < 10) cpuAct = "BET"; else cpuAct = "CHECKS";
+                    }
+                }
+            }
+
+            let actColor = "#f87171";
+            if (cpuAct === 'FOLD') {
+                setActionText('cpu', 'FOLDS', '#60a5fa');
+                endVsGame("YOU WIN!");
+                return;
+            } else if (cpuAct === 'CALL' || cpuAct === 'CHECKS') {
+                actColor = "#34d399";
+                if(cpuAct === 'CALL') amountToAdd = heroInvested - cpuInvested;
+            } else if (cpuAct === 'BET' || cpuAct === 'RAISE') {
+                let raiseSize = currentStreet === 0 ? 7.5 : Math.max((pot + heroInvested + cpuInvested) / 2, 1);
+                if (currentStreet === 0 && cpuInvested === 1.0) amountToAdd = 6.5; // プリフロの3bet (7.5BB)
+                else amountToAdd = (heroInvested - cpuInvested) + raiseSize;
+            }
+
+            cpuStack -= amountToAdd;
+            cpuInvested += amountToAdd;
+            playerActed.cpu = true;
+            
+            setActionText('cpu', cpuAct, actColor);
+            updatePlayUI();
+
+            // CPUの行動後、ストリート終了かプレイヤーのターンに戻るか判定
+            if (playerActed.hero && playerActed.cpu && heroInvested === cpuInvested) {
+                setTimeout(advanceStreet, 1200);
+            } else {
+                isHeroTurn = true;
+                document.querySelectorAll('#play-controls button').forEach(b => b.style.opacity = "1");
+                updateButtonsUI();
+            }
+        }
+
+
+        // 自分が行動した内容を変数にメモする関数
+        function recordHeroAction(act) {
+            if (currentStreet === 1 && !handRecord.flop.action) handRecord.flop.action = act;
+            if (currentStreet === 2 && !handRecord.turn.action) handRecord.turn.action = act;
+            if (currentStreet === 3 && !handRecord.river.action) handRecord.river.action = act;
+        }
+
+        // ★ advanceStreet にボード評価を追記 ★
+        function advanceStreet() {
+            pot += heroInvested + cpuInvested;
+            heroInvested = 0; cpuInvested = 0;
+            playerActed = { hero: false, cpu: false };
+            
+            currentStreet++;
+            if (currentStreet === 1) {
+                board.push(deck.pop(), deck.pop(), deck.pop()); // フロップ
+                handRecord.flop.texture = getFlopTexture(board); // ★ テクスチャ記録
+            } else if (currentStreet === 2) {
+                let newCard = deck.pop();
+                handRecord.turn.cardType = getNewCardType(board, newCard); // ★ カード種別記録
+                board.push(newCard);
+                handRecord.turn.madeHand = getMyHandStrengthStr(heroHand, board); // ★ 役記録
+                // ダブルバレル判定
+                if (handRecord.flop.action === "BET" || handRecord.flop.action === "RAISE") handRecord.lines.doubleBarrel = true;
+            } else if (currentStreet === 3) {
+                let newCard = deck.pop();
+                handRecord.river.cardType = getNewCardType(board, newCard);
+                board.push(newCard);
+                handRecord.river.madeHand = getMyHandStrengthStr(heroHand, board);
+                // トリプルバレル判定
+                if (handRecord.lines.doubleBarrel && (handRecord.turn.action === "BET" || handRecord.turn.action === "RAISE")) handRecord.lines.tripleBarrel = true;
+            } else if (currentStreet >= 4) {
+                endVsGame("SHOWDOWN");
+                return;
+            }
+
+            updatePlayUI();
+
+            if (currentStreet > 0) {
+                isHeroTurn = false;
+                document.querySelectorAll('#play-controls button').forEach(b => b.style.opacity = "0.5");
+                setActionText('hero', '', '#111'); 
+                setActionText('cpu', 'Thinking...', '#94a3b8');
+                setTimeout(executeCpuTurn, 1500); 
+            }
+        }
+
+        // ★ endVsGame をスプシ送信仕様に書き換え ★
+        function endVsGame(reason) {
+            currentStreet = 4; 
+            updatePlayUI();
+            document.getElementById('play-controls').classList.add('hidden');
+            
+            const btnStart = document.getElementById('btn-play-start');
+            btnStart.classList.remove('hidden');
+            btnStart.innerText = "Next Game";
+            
+            if(reason) {
+                let el = document.getElementById('ui-hero-action');
+                el.innerText = reason;
+                el.style.color = "#fbbf24"; 
+            }
+
+            // === スプレッドシートへ送信 ===
+            if (handRecord.flop.texture !== null && typeof GAS_WEBAPP_URL !== 'undefined') {
+                let t = handRecord.flop.texture;
+                handRecord.flopTextureStr = `${t.high}, ${t.tone}, ${t.paired}, ${t.connected}`;
+                handRecord.type = "postflop"; // ポストフロップデータとしての目印
+                
+                let payload = "data=" + encodeURIComponent(JSON.stringify(handRecord));
+                fetch(GAS_WEBAPP_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: payload
+                }).then(() => console.log("PostFlop Stats sent to GAS"));
+            }
+        }
+
+        // 取得した生データを保持しておくグローバル変数
+        let rawStatsData = [];
+
+        // ▼ スプシからデータを取得して保持する関数 ▼
+        async function fetchStatsFromCloud() {
+            if (typeof GAS_WEBAPP_URL !== 'undefined' && GAS_WEBAPP_URL) {
+                try {
+                    // URLの末尾にタイムスタンプ(&t=...)を追加してキャッシュを回避する
+                    const response = await fetch(GAS_WEBAPP_URL + "?action=getStats&t=" + new Date().getTime());
+                    rawStatsData = await response.json();
+                    renderStatsTable(); // 取得後に描画
+                } catch(e) {
+                    console.error("Stats同期エラー:", e);
+                }
+            }
+        }
+
+        // ▼ プルダウンの条件に合わせて集計し、テーブルを描画する関数 ▼
+        function renderStatsTable() {
+            const tbody = document.getElementById('stats-list-body');
+            tbody.innerHTML = '';
+            
+            if(rawStatsData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-slate-400">まだプレイデータがありません</td></tr>';
+                return;
+            }
+
+            const streetFilter = document.getElementById('stats-street-select').value;
+            const posFilter = document.getElementById('stats-pos-select').value;
+
+            const summary = {};
+
+            // ▼ 追加: Flopの場合はすべての特徴項目をあらかじめセットしておく ▼
+            if (streetFilter === "Flop") {
+                const allFlopFeatures = [
+                    "A-high (2nd T+)", "A-high (2nd 9-)", "KQ-high", "J-high or lower",
+                    "Monotone", "Two-tone", "Rainbow",
+                    "Paired", "Unpaired",
+                    "Connected", "Disconnected"
+                ];
+                allFlopFeatures.forEach(f => {
+                    summary[f] = { total: 0, CHECK: 0, CALL: 0, RAISE: 0, FOLD: 0 };
+                });
+            }
+
+            // 表記揺れを吸収
+            const normalizeAct = (act) => {
+                if (!act || act === "-") return "-";
+                act = act.toUpperCase();
+                if (act.includes("CHECK")) return "CHECK";
+                if (act.includes("CALL")) return "CALL";
+                if (act.includes("BET") || act.includes("RAISE")) return "RAISE";
+                if (act.includes("FOLD")) return "FOLD";
+                return act;
+            };
+
+            rawStatsData.forEach(d => {
+                // IP / OOP の判定
+                let ip_oop = (d.pos === "BTN" || d.pos === "CO" || d.pos === "HJ") ? "IP" : "OOP";
+                if (ip_oop !== posFilter) return; // 選択されたポジション以外は除外
+
+                let act = "-";
+                let features = [];
+
+                if (streetFilter === "Flop" && d.flopBoard && d.flopBoard !== "-") {
+                    act = normalizeAct(d.flopAct);
+                    // ボード文字列（"KQ-high, Rainbow..."）をカンマで区切って配列にする
+                    features = d.flopBoard.split(',').map(s => s.trim());
+                } else if (streetFilter === "Turn" && d.turnCard && d.turnCard !== "-") {
+                    act = normalizeAct(d.turnAct);
+                    features = [d.turnCard]; // ターンのカード種類
+                } else if (streetFilter === "River" && d.riverCard && d.riverCard !== "-") {
+                    act = normalizeAct(d.riverAct);
+                    features = [d.riverCard]; // リバーのカード種類
+                }
+
+                if (act !== "-") {
+                    // 「Rainbow」「Unpaired」など個別の特徴ごとにアクションをカウントする
+                    features.forEach(feature => {
+                        if (!summary[feature]) summary[feature] = { total: 0, CHECK: 0, CALL: 0, RAISE: 0, FOLD: 0 };
+                        if (summary[feature][act] !== undefined) {
+                            summary[feature][act]++;
+                            summary[feature].total++;
+                        }
+                    });
+                }
+            });
+
+            const keys = Object.keys(summary);
+            if(keys.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-slate-400">該当する条件のデータがありません</td></tr>';
+                return;
+            }
+
+            // 集計結果を描画
+            keys.sort().forEach(key => {
+                let s = summary[key];
+                // if (s.total === 0) return;
+                
+                // ▼ 修正: s.total が0より大きい場合のみ計算し、0の場合は "0%" を返すように変更 ▼
+                let getPct = (count) => s.total > 0 ? Math.round((count / s.total) * 100) + "%" : "0%";
+
+                tbody.innerHTML += `<tr>
+                    <td class="text-xs font-bold text-white">${key}</td>
+                    <td class="text-sm font-bold text-slate-300">${getPct(s.CHECK)}</td>
+                    <td class="text-sm font-bold text-blue-400">${getPct(s.CALL)}</td>
+                    <td class="text-sm font-bold text-emerald-400">${getPct(s.RAISE)}</td>
+                    <td class="text-sm font-bold text-red-400">${getPct(s.FOLD)}</td>
+                    <td class="text-xs text-slate-500">${s.total} 回</td>
+                </tr>`;
+            });
+        }
+
+        // ▼ switchTab関数にStats取得処理を追加 ▼
+        // (既存の switchTab 関数内の if分岐に書き足します)
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(`${tabId}-section`).classList.add('active');
+            btnElement.classList.add('active');
+
+            if (tabId === 'chart') {
+                renderGrid();
+            } else if (tabId === 'review') {
+                renderMistakeList();
+            } else if (tabId === 'stats') {
+                // タブを開いた時に最新のデータを取得
+                fetchStatsFromCloud();
             }
         }
 
