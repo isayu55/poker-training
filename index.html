@@ -468,7 +468,7 @@
                 posSelect.innerHTML = `<option value="mistakes">From Mistake List</option>`;
                 actionToYouText.innerText = `Reviewing ${mistakes.length} mistakes`;
                 currentScenarioType = 'mistakes';
-                toggleCallButton(true);
+                utton(true);
                 return;
             }
 
@@ -524,7 +524,7 @@
             }
             
             updatePosAndActionUI();
-            toggleCallButton(currentScenarioType === '3bet_2_5');
+            toggleCallButton(currentScenarioType === '3bet_2_5' || currentScenarioType === '3bet_norake');
         }
 
         function toggleCallButton(show) {
@@ -577,8 +577,8 @@
                 currentPosKey = currentMistakeItem.pos;
                 currentHandNotation = currentMistakeItem.hand;
                 
-                let bbInfo = currentScenarioType === '3bet_2_5' ? "2.5BB" : "5BB";
-                toggleCallButton(currentScenarioType === '3bet_2_5' || currentScenarioType === '3bet_norake'); // ⭕ 追加
+                let bbInfo = (currentScenarioType === '3bet_2_5' || currentScenarioType === '3bet_norake') ? "2.5BB" : "5BB";
+                toggleCallButton(currentScenarioType === '3bet_2_5' || currentScenarioType === '3bet_norake');
 
             } else {
                 if(scenarioSelect.value === 'random' || posSelect.value === 'random') {
